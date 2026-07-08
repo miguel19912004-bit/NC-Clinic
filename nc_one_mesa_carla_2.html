@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NC ONE · Mesa de Fechamento (Uso Interno)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@100;200;300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #bca366;
+    --gold-light: #d4b97a;
+    --gold-pale: #e8d5a8;
+    --gold-dim: #8a7548;
+    --black: #0a0a0a;
+    --black-card: #161616;
+    --black-border: #222222;
+    --white: #f5f0e8;
+    --white-dim: #c8c0b0;
+    --warn: #c96a4e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 200;
+    -webkit-font-smoothing: antialiased;
+  }
+  .warnbar {
+    background: var(--warn);
+    color: #1a0f0a;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  header {
+    text-align: center;
+    padding: 40px 24px 28px;
+    border-bottom: 1px solid var(--black-border);
+  }
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 36px;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--white-dim);
+    margin-top: 8px;
+  }
+  .container { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  .tabnav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 16px 0;
+  }
+  .tabbtn {
+    background: none;
+    border: 1px solid var(--black-border);
+    color: var(--white-dim);
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: color 0.25s, border-color 0.25s;
+  }
+  .tabbtn.active, .tabbtn:hover, .tabbtn:focus-visible {
+    color: var(--gold-pale);
+    border-color: var(--gold-dim);
+  }
+  .tabcontent { display: none; }
+  .tabcontent.active { display: block; }
+
+  .legend {
+    background: var(--black-card);
+    border: 1px solid var(--black-border);
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    font-size: 12px;
+    color: var(--white-dim);
+    line-height: 1.9;
+  }
+  .legend b { color: var(--gold-pale); font-weight: 400; }
+  .legend .tier1 { color: var(--gold-pale); }
+  .legend .tier2 { color: var(--warn); }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin: 44px 0 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .section-label span.prof {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    text-transform: none;
+  }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--black-border); }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  th {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    text-align: left;
+    padding: 12px 14px;
+    background: var(--black-card);
+    border-bottom: 1px solid var(--black-border);
+    white-space: nowrap;
+  }
+  th.num, td.num { text-align: right; }
+  td {
+    padding: 13px 14px;
+    font-size: 13px;
+    color: var(--white-dim);
+    border-bottom: 1px solid var(--black-border);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.protocolo { color: var(--white); font-weight: 300; white-space: normal; }
+  td.valor { color: var(--gold-light); font-family: 'Cormorant Garamond', serif; font-size: 16px; }
+  td.tier2col { color: var(--warn); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr.reserverow td { color: var(--warn); }
+  tr.reserverow td.valor { color: var(--warn); }
+
+  .note {
+    font-size: 11px;
+    color: #5a5347;
+    font-style: italic;
+    margin-top: 10px;
+  }
+
+  .laser-box {
+    background: var(--black-card);
+    border: 1px solid var(--black-border);
+    padding: 22px 24px;
+    margin-top: 44px;
+    font-size: 13px;
+    color: var(--white-dim);
+    line-height: 1.8;
+  }
+  .laser-box b { color: var(--gold-pale); font-weight: 400; }
+
+  .sim-panel {
+    background: var(--black-card);
+    border: 1px solid var(--black-border);
+    padding: 26px 24px;
+    margin-bottom: 30px;
+  }
+  .sim-row { margin-bottom: 18px; }
+  .sim-row:last-child { margin-bottom: 0; }
+  .sim-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 480px) { .sim-row.two { grid-template-columns: 1fr; } }
+  .sim-row label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 7px;
+  }
+  .sim-row select, .sim-row input {
+    width: 100%;
+    background: var(--black);
+    border: 1px solid var(--black-border);
+    color: var(--white);
+    padding: 11px 12px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+  }
+  .sim-row select:focus, .sim-row input:focus { outline: none; border-color: var(--gold-dim); }
+  .sim-saldo {
+    font-size: 14px;
+    color: var(--white);
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--black-border);
+  }
+  .sim-saldo b { color: var(--gold-pale); font-weight: 400; }
+  .sim-avista {
+    font-size: 12px;
+    color: var(--white-dim);
+    margin-top: 12px;
+  }
+  .sim-avista b { color: var(--gold-pale); font-weight: 400; }
+  .sim-avista b.tier2 { color: var(--warn); }
+
+  footer {
+    text-align: center;
+    padding: 30px 24px 44px;
+    border-top: 1px solid var(--black-border);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #3a3530;
+  }
+</style>
+</head>
+<body>
+
+<div class="warnbar">Uso interno · Mesa de Fechamento · Não exibir para pacientes</div>
+
+<header>
+  <div class="logo-text">NC ONE</div>
+  <div class="subtitle">Tabela de Fechamento — Carla</div>
+</header>
+
+<div class="tabnav">
+  <button class="tabbtn active" data-tab="tabela">Tabela de Fechamento</button>
+  <button class="tabbtn" data-tab="simulador">Simulador</button>
+</div>
+
+<div id="tab-tabela" class="tabcontent active">
+<div class="container">
+
+  <div class="legend">
+    <b class="tier1">Nível 1 — público:</b> 6x sem juros, ou 5% de desconto à vista/Pix. É o que está no catálogo que a paciente vê.<br>
+    <b class="tier2">Nível 2 — reserva de negociação:</b> 12x, ou 10% à vista/Pix (5% público + 5% reserva). Usar <b>somente</b> se a paciente hesitar no fechamento — nunca oferecer de primeira.<br>
+    Sinal de <b>R$ 200</b> garante a pulseira VIP em qualquer protocolo.
+  </div>
+
+  <div class="section-label">Estação Confiança · <span class="prof">Nathiely</span></div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Protocolo</th><th class="num">Valor</th><th class="num">6x</th><th class="num">12x*</th><th class="num">À vista 5%</th><th class="num">À vista 10%*</th></tr>
+      <tr><td class="protocolo">NC Time Reverse</td><td class="num valor">R$ 2.499</td><td class="num">R$ 416,50</td><td class="num tier2col">R$ 208,25</td><td class="num">R$ 2.374,05</td><td class="num tier2col">R$ 2.249,10</td></tr>
+      <tr><td class="protocolo">NC Firm Skin</td><td class="num valor">R$ 1.999</td><td class="num">R$ 333,17</td><td class="num tier2col">R$ 166,58</td><td class="num">R$ 1.899,05</td><td class="num tier2col">R$ 1.799,10</td></tr>
+      <tr><td class="protocolo">NC Contour</td><td class="num valor">R$ 2.799</td><td class="num">R$ 466,50</td><td class="num tier2col">R$ 233,25</td><td class="num">R$ 2.659,05</td><td class="num tier2col">R$ 2.519,10</td></tr>
+    </table>
+  </div>
+  <div class="note">*colunas em vermelho = reserva de negociação, nível 2</div>
+
+  <div class="section-label">Estação Cuidado · <span class="prof">Lohayne</span></div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Protocolo</th><th class="num">Valor</th><th class="num">6x</th><th class="num">12x*</th><th class="num">À vista 5%</th><th class="num">À vista 10%*</th></tr>
+      <tr><td class="protocolo">NC Estrias Off — pacote 4 sessões</td><td class="num valor">R$ 1.199</td><td class="num">R$ 199,83</td><td class="num tier2col">R$ 99,92</td><td class="num">R$ 1.139,05</td><td class="num tier2col">R$ 1.079,10</td></tr>
+      <tr><td class="protocolo">Radiofrequência Facial — pacote 8 sessões</td><td class="num valor">R$ 999</td><td class="num">R$ 166,50</td><td class="num tier2col">R$ 83,25</td><td class="num">R$ 949,05</td><td class="num tier2col">R$ 899,10</td></tr>
+      <tr><td class="protocolo">NC Skin Glow</td><td class="num valor">R$ 199</td><td class="num">R$ 33,17</td><td class="num tier2col">R$ 16,58</td><td class="num">R$ 189,05</td><td class="num tier2col">R$ 179,10</td></tr>
+    </table>
+  </div>
+
+  <div class="section-label">Estação Equilíbrio · <span class="prof">Thalita</span></div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Protocolo</th><th class="num">Valor</th><th class="num">6x</th><th class="num">12x*</th><th class="num">À vista 5%</th><th class="num">À vista 10%*</th></tr>
+      <tr><td class="protocolo">Detox Life 28</td><td class="num valor">R$ 1.249</td><td class="num">R$ 208,17</td><td class="num tier2col">R$ 104,08</td><td class="num">R$ 1.186,55</td><td class="num tier2col">R$ 1.124,10</td></tr>
+      <tr><td class="protocolo">Intimee — 6 sessões</td><td class="num valor">R$ 1.399</td><td class="num">R$ 233,17</td><td class="num tier2col">R$ 116,58</td><td class="num">R$ 1.329,05</td><td class="num tier2col">R$ 1.259,10</td></tr>
+      <tr><td class="protocolo">Drenagem para Lipedema</td><td class="num valor">R$ 3.199</td><td class="num">R$ 533,17</td><td class="num tier2col">R$ 266,58</td><td class="num">R$ 3.039,05</td><td class="num tier2col">R$ 2.879,10</td></tr>
+    </table>
+  </div>
+
+  <div class="section-label">Métodos NC · <span class="prof">Nayara</span></div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Protocolo</th><th class="num">Valor</th><th class="num">6x</th><th class="num">12x*</th><th class="num">À vista 5%</th><th class="num">À vista 10%*</th></tr>
+      <tr><td class="protocolo">Método NC Detox — Abdômen Completo</td><td class="num valor">R$ 2.199</td><td class="num">R$ 366,50</td><td class="num tier2col">R$ 183,25</td><td class="num">R$ 2.089,05</td><td class="num tier2col">R$ 1.979,10</td></tr>
+      <tr><td class="protocolo">Método NC Detox — Abdômen + Costas</td><td class="num valor">R$ 3.199</td><td class="num">R$ 533,17</td><td class="num tier2col">R$ 266,58</td><td class="num">R$ 3.039,05</td><td class="num tier2col">R$ 2.879,10</td></tr>
+      <tr><td class="protocolo">Método NC Detox — Lipedema</td><td class="num valor">R$ 2.199</td><td class="num">R$ 366,50</td><td class="num tier2col">R$ 183,25</td><td class="num">R$ 2.089,05</td><td class="num tier2col">R$ 1.979,10</td></tr>
+      <tr><td class="protocolo">Método NC Detox — Braços</td><td class="num valor">R$ 1.899</td><td class="num">R$ 316,50</td><td class="num tier2col">R$ 158,25</td><td class="num">R$ 1.804,05</td><td class="num tier2col">R$ 1.709,10</td></tr>
+      <tr><td class="protocolo">Método NC Firm Body — Abdômen Completo</td><td class="num valor">R$ 4.499</td><td class="num">R$ 749,83</td><td class="num tier2col">R$ 374,92</td><td class="num">R$ 4.274,05</td><td class="num tier2col">R$ 4.049,10</td></tr>
+      <tr><td class="protocolo">Método NC Firm Body — Abdômen + Costas</td><td class="num valor">R$ 5.299</td><td class="num">R$ 883,17</td><td class="num tier2col">R$ 441,58</td><td class="num">R$ 5.034,05</td><td class="num tier2col">R$ 4.769,10</td></tr>
+      <tr><td class="protocolo">Método NC Firm Body — Interna de Coxas</td><td class="num valor">R$ 3.599</td><td class="num">R$ 599,83</td><td class="num tier2col">R$ 299,92</td><td class="num">R$ 3.419,05</td><td class="num tier2col">R$ 3.239,10</td></tr>
+      <tr><td class="protocolo">Método NC Firm Body — Braços</td><td class="num valor">R$ 3.999</td><td class="num">R$ 666,50</td><td class="num tier2col">R$ 333,25</td><td class="num">R$ 3.799,05</td><td class="num tier2col">R$ 3.599,10</td></tr>
+    </table>
+  </div>
+
+  <div class="laser-box">
+    <b>Depilação a Laser — mecânica de fechamento</b><br>
+    Compre 5 sessões (mesma área ou combinadas) e ganha a 6ª grátis — a de menor valor entre as escolhidas. Valor final varia por combinação; some as 5 sessões escolhidas e calcule na hora.<br><br>
+    Exemplo: 5x Virilha Completa (R$180 cada) = R$ 900 → paciente leva 6 sessões, economia de R$ 180.
+  </div>
+
+</div>
+</div>
+
+<div id="tab-simulador" class="tabcontent">
+<div class="container">
+
+  <div class="sim-panel">
+    <div class="sim-row">
+      <label>Procedimento</label>
+      <select id="simProtocolo"></select>
+    </div>
+    <div class="sim-row two">
+      <div>
+        <label>Valor total (R$)</label>
+        <input type="number" id="simValor" step="0.01" min="0">
+      </div>
+      <div>
+        <label>Entrada / Sinal (R$)</label>
+        <input type="number" id="simEntrada" step="0.01" min="0" value="0">
+      </div>
+    </div>
+    <div class="sim-saldo" id="simSaldoInfo"></div>
+    <div class="sim-avista" id="simAvista"></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Parcelas</th><th class="num">Valor da parcela</th><th class="num">Total (com entrada)</th></tr></thead>
+      <tbody id="simTableBody"></tbody>
+    </table>
+  </div>
+  <div class="note">Linhas em vermelho (7x–12x) = reserva de negociação. Usar apenas se necessário para fechar.</div>
+
+</div>
+</div>
+
+<footer>NC CLINIC · NC ONE · Capítulo I</footer>
+
+<script>
+  document.querySelectorAll('.tabbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tabbtn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.tabcontent').forEach(function(c){ c.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  var protocolos = [
+    {group:'Nathiely', name:'NC Time Reverse', price:2499},
+    {group:'Nathiely', name:'NC Firm Skin', price:1999},
+    {group:'Nathiely', name:'NC Contour', price:2799},
+    {group:'Lohayne', name:'NC Estrias Off (4 sessões)', price:1199},
+    {group:'Lohayne', name:'Radiofrequência Facial (8 sessões)', price:999},
+    {group:'Lohayne', name:'NC Skin Glow', price:199},
+    {group:'Thalita', name:'Detox Life 28', price:1249},
+    {group:'Thalita', name:'Intimee (6 sessões)', price:1399},
+    {group:'Thalita', name:'Drenagem para Lipedema', price:3199},
+    {group:'Nayara', name:'Método NC Detox — Abdômen Completo', price:2199},
+    {group:'Nayara', name:'Método NC Detox — Abdômen + Costas', price:3199},
+    {group:'Nayara', name:'Método NC Detox — Lipedema', price:2199},
+    {group:'Nayara', name:'Método NC Detox — Braços', price:1899},
+    {group:'Nayara', name:'Método NC Firm Body — Abdômen Completo', price:4499},
+    {group:'Nayara', name:'Método NC Firm Body — Abdômen + Costas', price:5299},
+    {group:'Nayara', name:'Método NC Firm Body — Interna de Coxas', price:3599},
+    {group:'Nayara', name:'Método NC Firm Body — Braços', price:3999}
+  ];
+
+  var select = document.getElementById('simProtocolo');
+  var groupEls = {};
+  protocolos.forEach(function(p){
+    if(!groupEls[p.group]){
+      var og = document.createElement('optgroup');
+      og.label = p.group;
+      select.appendChild(og);
+      groupEls[p.group] = og;
+    }
+    var opt = document.createElement('option');
+    opt.value = p.price;
+    opt.textContent = p.name;
+    groupEls[p.group].appendChild(opt);
+  });
+  var customOg = document.createElement('optgroup');
+  customOg.label = 'Outro';
+  var customOpt = document.createElement('option');
+  customOpt.value = 'custom';
+  customOpt.textContent = 'Valor personalizado / Laser';
+  customOg.appendChild(customOpt);
+  select.appendChild(customOg);
+
+  var valorInput = document.getElementById('simValor');
+  var entradaInput = document.getElementById('simEntrada');
+
+  function fmt(v){
+    return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  }
+
+  select.addEventListener('change', function(){
+    if(select.value !== 'custom'){
+      valorInput.value = parseFloat(select.value).toFixed(2);
+    }
+    recalc();
+  });
+  valorInput.addEventListener('input', recalc);
+  entradaInput.addEventListener('input', recalc);
+
+  function recalc(){
+    var valor = parseFloat(valorInput.value) || 0;
+    var entrada = parseFloat(entradaInput.value) || 0;
+    if(entrada > valor) entrada = valor;
+    var saldo = Math.max(valor - entrada, 0);
+
+    document.getElementById('simSaldoInfo').innerHTML =
+      'Saldo a parcelar após entrada: <b>' + fmt(saldo) + '</b>';
+
+    var avista5 = saldo * 0.95;
+    var avista10 = saldo * 0.90;
+    document.getElementById('simAvista').innerHTML =
+      'À vista/Pix do saldo — 5% (público): <b>' + fmt(avista5) + '</b> &nbsp;·&nbsp; 10% (reserva): <b class="tier2">' + fmt(avista10) + '</b>';
+
+    var tbody = document.getElementById('simTableBody');
+    tbody.innerHTML = '';
+    for(var n = 1; n <= 12; n++){
+      var parcela = saldo / n;
+      var total = entrada + parcela * n;
+      var tr = document.createElement('tr');
+      if(n > 6) tr.classList.add('reserverow');
+      tr.innerHTML = '<td class="protocolo">' + n + 'x</td><td class="num">' + fmt(parcela) + '</td><td class="num valor">' + fmt(total) + '</td>';
+      tbody.appendChild(tr);
+    }
+  }
+
+  select.value = protocolos[0].price;
+  valorInput.value = protocolos[0].price.toFixed(2);
+  recalc();
+</script>
+
+</body>
+</html>
