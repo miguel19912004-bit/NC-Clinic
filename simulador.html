@@ -188,6 +188,17 @@
     font-size: 14px;
   }
   .sim-row select:focus, .sim-row input:focus { outline: none; border-color: var(--gold-dim); }
+  .qtyinput {
+    width: 64px;
+    background: var(--black);
+    border: 1px solid var(--black-border);
+    color: var(--white);
+    padding: 6px 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    text-align: center;
+  }
+  .qtyinput:focus { outline: none; border-color: var(--gold-dim); }
   .sim-saldo {
     font-size: 14px;
     color: var(--white);
@@ -227,6 +238,7 @@
 <div class="tabnav">
   <button class="tabbtn active" data-tab="tabela">Tabela de Fechamento</button>
   <button class="tabbtn" data-tab="simulador">Simulador</button>
+  <button class="tabbtn" data-tab="laser">Calculadora Laser</button>
 </div>
 
 <div id="tab-tabela" class="tabcontent active">
@@ -284,9 +296,25 @@
     </table>
   </div>
 
+  <div class="section-label">Depilação a Laser · <span class="prof">Nayara</span></div>
+  <div class="tablewrap">
+    <table>
+      <tr><th>Área</th><th class="num">Preço avulso</th></tr>
+      <tr><td class="protocolo">Buço</td><td class="num valor">R$ 60</td></tr>
+      <tr><td class="protocolo">Axilas</td><td class="num valor">R$ 90</td></tr>
+      <tr><td class="protocolo">Barba / Face</td><td class="num valor">R$ 160</td></tr>
+      <tr><td class="protocolo">Virilha Parcial</td><td class="num valor">R$ 150</td></tr>
+      <tr><td class="protocolo">Peito</td><td class="num valor">R$ 180</td></tr>
+      <tr><td class="protocolo">Virilha Completa</td><td class="num valor">R$ 180</td></tr>
+      <tr><td class="protocolo">Meia Perna</td><td class="num valor">R$ 220</td></tr>
+      <tr><td class="protocolo">Costas</td><td class="num valor">R$ 300</td></tr>
+      <tr><td class="protocolo">Perna Inteira</td><td class="num valor">R$ 380</td></tr>
+    </table>
+  </div>
+
   <div class="laser-box">
     <b>Depilação a Laser — mecânica de fechamento</b><br>
-    Compre 5 sessões (mesma área ou combinadas) e ganha a 6ª grátis — a de menor valor entre as escolhidas. Valor final varia por combinação; some as 5 sessões escolhidas e calcule na hora.<br><br>
+    Compre 5 sessões (mesma área ou combinadas) e ganha a 6ª grátis — a de menor valor entre as escolhidas. Some os preços das 5 áreas escolhidas na tabela acima e calcule na hora.<br><br>
     Exemplo: 5x Virilha Completa (R$180 cada) = R$ 900 → paciente leva 6 sessões, economia de R$ 180.
   </div>
 
@@ -322,6 +350,33 @@
     </table>
   </div>
   <div class="note">Linhas em vermelho (7x–12x) = reserva de negociação. Usar apenas se necessário para fechar.</div>
+
+</div>
+</div>
+
+<div id="tab-laser" class="tabcontent">
+<div class="container">
+
+  <div class="sim-panel">
+    <div class="section-label" style="margin-top:0;">Áreas · Quantidade de sessões</div>
+    <div class="tablewrap">
+      <table id="laserAreaTable">
+        <thead><tr><th>Área</th><th class="num">Preço unit.</th><th class="num" style="width:110px;">Sessões</th><th class="num">Subtotal</th></tr></thead>
+        <tbody id="laserAreaBody"></tbody>
+      </table>
+    </div>
+
+    <div class="sim-saldo" id="laserResumo"></div>
+    <div class="sim-avista" id="laserDesconto"></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Parcelas</th><th class="num">Valor da parcela</th></tr></thead>
+      <tbody id="laserParcelasBody"></tbody>
+    </table>
+  </div>
+  <div class="note">A cada 6 sessões, a de menor valor entre as escolhidas sai grátis. Para parcelar acima de 6x, use o valor total daqui na aba Simulador (opção "Valor personalizado / Laser").</div>
 
 </div>
 </div>
@@ -425,6 +480,71 @@
   select.value = protocolos[0].price;
   valorInput.value = protocolos[0].price.toFixed(2);
   recalc();
+
+  // ── laser calculator ──
+  var laserAreas = [
+    {name:'Buço', price:60},
+    {name:'Axilas', price:90},
+    {name:'Barba / Face', price:160},
+    {name:'Virilha Parcial', price:150},
+    {name:'Peito', price:180},
+    {name:'Virilha Completa', price:180},
+    {name:'Meia Perna', price:220},
+    {name:'Costas', price:300},
+    {name:'Perna Inteira', price:380}
+  ];
+
+  var laserBody = document.getElementById('laserAreaBody');
+  laserAreas.forEach(function(area, idx){
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="protocolo">' + area.name + '</td>' +
+      '<td class="num">' + fmt(area.price) + '</td>' +
+      '<td class="num"><input type="number" class="qtyinput" min="0" step="1" value="0" data-idx="' + idx + '"></td>' +
+      '<td class="num" id="laserSub' + idx + '">' + fmt(0) + '</td>';
+    laserBody.appendChild(tr);
+  });
+
+  laserBody.querySelectorAll('.qtyinput').forEach(function(inp){
+    inp.addEventListener('input', recalcLaser);
+  });
+
+  function recalcLaser(){
+    var flat = [];
+    var subtotal = 0;
+    laserAreas.forEach(function(area, idx){
+      var inp = laserBody.querySelector('.qtyinput[data-idx="' + idx + '"]');
+      var qty = parseInt(inp.value, 10) || 0;
+      var rowSub = qty * area.price;
+      subtotal += rowSub;
+      document.getElementById('laserSub' + idx).textContent = fmt(rowSub);
+      for(var i = 0; i < qty; i++){ flat.push(area.price); }
+    });
+
+    var totalSessoes = flat.length;
+    var freeCount = Math.floor(totalSessoes / 6);
+    var sorted = flat.slice().sort(function(a,b){ return a - b; });
+    var desconto = sorted.slice(0, freeCount).reduce(function(a,b){ return a + b; }, 0);
+    var totalCobrar = subtotal - desconto;
+
+    document.getElementById('laserResumo').innerHTML =
+      'Total de sessões: <b>' + totalSessoes + '</b> &nbsp;·&nbsp; Subtotal: <b>' + fmt(subtotal) + '</b>';
+    document.getElementById('laserDesconto').innerHTML =
+      freeCount > 0
+        ? 'Sessões grátis (' + freeCount + 'x): <b class="tier2">-' + fmt(desconto) + '</b> &nbsp;·&nbsp; Total a cobrar: <b>' + fmt(totalCobrar) + '</b>'
+        : 'Total a cobrar: <b>' + fmt(totalCobrar) + '</b> — inclua 6 sessões ou mais para liberar a sessão grátis';
+
+    var pbody = document.getElementById('laserParcelasBody');
+    pbody.innerHTML = '';
+    for(var n = 1; n <= 6; n++){
+      var parcela = totalCobrar / n;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td class="protocolo">' + n + 'x</td><td class="num valor">' + fmt(parcela) + '</td>';
+      pbody.appendChild(tr);
+    }
+  }
+
+  recalcLaser();
 </script>
 
 </body>
