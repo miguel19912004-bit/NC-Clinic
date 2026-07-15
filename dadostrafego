@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NC Clinic · Análise de Público</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@100;200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#bca366;--gold-light:#d4b97a;--gold-pale:#e8d5a8;--gold-dim:#8a7548;
+  --gold-faint:rgba(188,163,102,0.07);
+  --black:#0a0a0a;--card:#141414;--card2:#1b1b1b;
+  --border:#222;--border2:#2d2d2d;
+  --white:#f0ece4;--white-dim:#9a9286;--white-faint:#5a5248;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--white);font-family:'Archivo',sans-serif;font-weight:200;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+.nav{display:flex;border-bottom:1px solid var(--border);background:rgba(10,10,10,0.97);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+.logo{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:20px;letter-spacing:0.2em;color:var(--gold);padding:14px 24px;border-right:1px solid var(--border);white-space:nowrap;}
+.tab{padding:16px 20px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--white-faint);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Archivo',sans-serif;font-weight:200;transition:all .2s;white-space:nowrap;}
+.tab:hover{color:var(--white-dim);}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.view{display:none;}.view.active{display:block;}
+
+.page{padding:32px 28px 80px;max-width:960px;}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);letter-spacing:0.03em;margin-bottom:5px;}
+.page-sub{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--white-faint);margin-bottom:32px;}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:36px;}
+.kpi{background:var(--card);padding:18px 16px;}
+.kpi-val{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;color:var(--gold);line-height:1;}
+.kpi-label{font-size:8px;letter-spacing:0.3em;text-transform:uppercase;color:var(--white-faint);margin-top:4px;}
+
+.sec{font-size:9px;letter-spacing:0.38em;text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:18px;color:var(--gold-dim);}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.bar-label{font-size:11px;color:var(--white-dim);width:62px;flex-shrink:0;text-align:right;}
+.bar-track{flex:1;height:22px;background:var(--card);overflow:hidden;}
+.bar-fill{height:100%;display:flex;align-items:center;padding-left:8px;}
+.bar-cnt{font-size:10px;color:#0a0a0a;white-space:nowrap;}
+.bar-cnt-out{font-size:10px;color:var(--white-faint);padding-left:8px;}
+
+/* OVERVIEW GRID */
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:36px;}
+@media(max-width:700px){.ov-grid{grid-template-columns:1fr 1fr;}}
+.ov-card{background:var(--card);border:1px solid var(--border);padding:14px 16px;border-left:3px solid;}
+.ov-name{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--white);margin-bottom:10px;line-height:1.3;}
+.ov-stats{display:flex;gap:16px;}
+.ov-stat-val{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1;}
+.ov-stat-label{font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:var(--white-faint);margin-top:2px;}
+
+/* CAT CARDS */
+.cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+@media(max-width:640px){.cats-grid{grid-template-columns:1fr;}}
+.cat-card{background:var(--card);border:1px solid var(--border);padding:16px 18px 14px;cursor:pointer;transition:border-color .18s;position:relative;border-left:3px solid;}
+.cat-card:hover{border-color:var(--border2);}
+.cat-card.sel{border-color:var(--gold) !important;border-left-color:var(--gold) !important;}
+.cat-card.sel{background:rgba(188,163,102,0.03);}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;color:var(--white);margin-bottom:10px;}
+.cat-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.cs-val{font-family:'Cormorant Garamond',serif;font-size:19px;line-height:1;}
+.cs-label{font-size:7px;letter-spacing:0.26em;text-transform:uppercase;color:var(--white-faint);margin-top:2px;}
+.mini-bars{display:flex;gap:2px;align-items:flex-end;height:28px;margin-top:6px;}
+.mb{flex:1;min-width:2px;background:var(--border2);}
+
+/* DETAIL */
+.detail{background:var(--card2);border:1px solid var(--border2);padding:22px 24px;margin-bottom:36px;display:none;}
+.detail.open{display:block;}
+.detail-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--white);margin-bottom:18px;letter-spacing:0.02em;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:580px){.detail-grid{grid-template-columns:1fr;}}
+.meta-box{border:1px solid;padding:16px 18px;}
+.meta-title{font-size:8px;letter-spacing:0.35em;text-transform:uppercase;color:var(--white-faint);margin-bottom:10px;}
+.meta-pub{font-family:'Cormorant Garamond',serif;font-size:21px;margin-bottom:8px;}
+.meta-note{font-size:11px;color:var(--white-dim);line-height:1.7;}
+.meta-note strong{color:var(--white);font-weight:300;}
+.detail-kpis{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-top:10px;}
+.dk{background:var(--card);padding:11px 12px;}
+.dk-val{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--gold);}
+.dk-label{font-size:7px;letter-spacing:0.28em;text-transform:uppercase;color:var(--white-faint);margin-top:2px;}
+
+/* REC BOX */
+.rec-box{border:1px solid var(--gold-dim);padding:20px 24px;background:var(--gold-faint);margin-bottom:36px;}
+.rec-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-bottom:4px;}
+.rec-sub{font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--white-faint);margin-bottom:16px;}
+.rec-body{font-size:12px;color:var(--white-dim);line-height:1.8;max-width:680px;}
+.rec-body strong{color:var(--white);font-weight:300;}
+
+::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:var(--black);}::-webkit-scrollbar-thumb{background:var(--border2);}
+@media(max-width:640px){.kpi-row{grid-template-columns:1fr 1fr;}.page{padding:20px 16px 60px;}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">NC CLINIC</div>
+  <button class="tab active" onclick="switchTab('geral',this)">Visão Geral</button>
+  <button class="tab" onclick="switchTab('proc',this)">Por Procedimento</button>
+</nav>
+
+<!-- ═══ VISÃO GERAL ═══ -->
+<div class="view active" id="view-geral">
+<div class="page">
+  <div class="page-title">Análise de Público</div>
+  <div class="page-sub">Procedimentos realizados abr/2025–jun/2026 · 329 pacientes com idade válida</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val" id="g-total"></div><div class="kpi-label">Pacientes c/ idade</div></div>
+    <div class="kpi"><div class="kpi-val" id="g-media"></div><div class="kpi-label">Idade média</div></div>
+    <div class="kpi"><div class="kpi-val" id="g-mediana"></div><div class="kpi-label">Mediana</div></div>
+    <div class="kpi"><div class="kpi-val" id="g-cats"></div><div class="kpi-label">Categorias</div></div>
+  </div>
+
+  <div class="sec">Distribuição geral de idade</div>
+  <div id="chart-geral" style="margin-bottom:36px;"></div>
+
+  <div class="rec-box">
+    <div class="rec-title">Público geral · Meta Ads</div>
+    <div class="rec-sub">Para campanhas de marca e awareness da NC Clinic</div>
+    <div class="rec-body">
+      <strong>Mulheres, 25–49 anos, Umuarama e região.</strong> A base concentra 69% das pacientes nessa faixa, com pico duplo em 31–34 e 35–39 anos (18,8% cada). Mediana de 36 anos.<br><br>
+      Para campanhas específicas de procedimento, use a aba <em>Por Procedimento</em> — cada serviço tem perfil etário próprio, alguns bem distintos (Botox e Bioestimuladores têm mediana de 42–43a, enquanto Laser e Peeling ficam em 32–33a).
+    </div>
+  </div>
+
+  <div class="sec">Volume por categoria</div>
+  <div class="ov-grid" id="ov-grid"></div>
+</div>
+</div>
+
+<!-- ═══ POR PROCEDIMENTO ═══ -->
+<div class="view" id="view-proc">
+<div class="page">
+  <div class="page-title">Público por Procedimento</div>
+  <div class="page-sub">Clique em uma categoria para ver o perfil de idade e recomendação Meta Ads</div>
+
+  <div class="cats-grid" id="cats-grid"></div>
+  <div class="detail" id="detail">
+    <div class="detail-title" id="d-title"></div>
+    <div class="detail-grid">
+      <div id="d-chart"></div>
+      <div>
+        <div class="meta-box" id="d-meta"></div>
+        <div class="detail-kpis" id="d-kpis"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const D = {"cats":[{"categoria":"Outros","sessoes":281,"pacientes_unicas":131,"faturamento":73196.58,"idade_media":40.60348661887607,"idade_min":19.211498973305954,"idade_max":65.70294318959617,"idade_mediana":38.5160848733744},{"categoria":"Criolipólise","sessoes":133,"pacientes_unicas":104,"faturamento":248103.22,"idade_media":39.82603325562366,"idade_min":21.99315537303217,"idade_max":65.4757015742642,"idade_mediana":38.34633812457221},{"categoria":"Depilação a Laser","sessoes":492,"pacientes_unicas":104,"faturamento":73398.61,"idade_media":32.619232845305866,"idade_min":10.715947980835045,"idade_max":62.652977412731005,"idade_mediana":32.07939767282683},{"categoria":"Preenchimento","sessoes":97,"pacientes_unicas":50,"faturamento":101018.78,"idade_media":37.528398145600036,"idade_min":22.349075975359344,"idade_max":65.70294318959617,"idade_mediana":33.85352498288843},{"categoria":"Toxina Botulínica","sessoes":63,"pacientes_unicas":48,"faturamento":63059.16,"idade_media":44.02537944221723,"idade_min":24.39151266255989,"idade_max":69.3990417522245,"idade_mediana":41.960301163586585},{"categoria":"Detox","sessoes":56,"pacientes_unicas":37,"faturamento":13002.52,"idade_media":38.76337146768358,"idade_min":25.232032854209447,"idade_max":56.85968514715948,"idade_mediana":36.20807665982204},{"categoria":"Bioestimuladores / PDRN","sessoes":49,"pacientes_unicas":36,"faturamento":68496.65,"idade_media":44.39045104694855,"idade_min":26.401095140314855,"idade_max":69.3990417522245,"idade_mediana":43.23066392881588},{"categoria":"Limpeza de Pele","sessoes":24,"pacientes_unicas":23,"faturamento":3950.0,"idade_media":38.22130960529318,"idade_min":23.98904859685147,"idade_max":65.3223819301848,"idade_mediana":35.57426420260096},{"categoria":"Drenagem Linfática","sessoes":62,"pacientes_unicas":18,"faturamento":9285.0,"idade_media":38.07524673776247,"idade_min":23.028062970568104,"idade_max":59.290896646132786,"idade_mediana":35.43052703627652},{"categoria":"Massagem / Relaxamento","sessoes":33,"pacientes_unicas":10,"faturamento":2130.0,"idade_media":35.59919523779893,"idade_min":25.232032854209447,"idade_max":41.56605065023956,"idade_mediana":37.1088295687885},{"categoria":"Peeling / Skin Glow","sessoes":9,"pacientes_unicas":7,"faturamento":5091.0,"idade_media":30.743326488706366,"idade_min":23.06365503080082,"idade_max":39.54277891854894,"idade_mediana":30.039698836413415},{"categoria":"Método NC Experience","sessoes":3,"pacientes_unicas":2,"faturamento":5189.0,"idade_media":29.851699749030345,"idade_min":27.09924709103354,"idade_max":35.356605065023956,"idade_mediana":27.09924709103354},{"categoria":"Radiofrequência","sessoes":12,"pacientes_unicas":2,"faturamento":1700.0,"idade_media":31.423226100844172,"idade_min":30.286105407255306,"idade_max":37.1088295687885,"idade_mediana":30.286105407255306},{"categoria":"Lipocavitação","sessoes":10,"pacientes_unicas":1,"faturamento":1300.0,"idade_media":31.304585900068446,"idade_min":31.304585900068446,"idade_max":31.304585900068446,"idade_mediana":31.304585900068446}],"cat_age_dist":{"Bioestimuladores / PDRN":{"10–17":0,"18–21":0,"22–24":0,"25–27":1,"28–30":2,"31–34":7,"35–39":7,"40–44":5,"45–49":6,"50–59":5,"60+":3},"Toxina Botulínica":{"10–17":0,"18–21":0,"22–24":1,"25–27":3,"28–30":1,"31–34":10,"35–39":6,"40–44":6,"45–49":6,"50–59":12,"60+":3},"Outros":{"10–17":0,"18–21":2,"22–24":3,"25–27":5,"28–30":12,"31–34":20,"35–39":31,"40–44":22,"45–49":12,"50–59":19,"60+":5},"Limpeza de Pele":{"10–17":0,"18–21":0,"22–24":1,"25–27":3,"28–30":0,"31–34":6,"35–39":5,"40–44":3,"45–49":0,"50–59":4,"60+":1},"Preenchimento":{"10–17":0,"18–21":0,"22–24":3,"25–27":8,"28–30":5,"31–34":10,"35–39":6,"40–44":2,"45–49":5,"50–59":10,"60+":1},"Depilação a Laser":{"10–17":9,"18–21":3,"22–24":9,"25–27":15,"28–30":9,"31–34":18,"35–39":13,"40–44":14,"45–49":7,"50–59":6,"60+":1},"Criolipólise":{"10–17":0,"18–21":1,"22–24":2,"25–27":7,"28–30":11,"31–34":16,"35–39":23,"40–44":17,"45–49":9,"50–59":14,"60+":4},"Detox":{"10–17":0,"18–21":0,"22–24":0,"25–27":1,"28–30":2,"31–34":10,"35–39":11,"40–44":7,"45–49":1,"50–59":5,"60+":0},"Peeling / Skin Glow":{"10–17":0,"18–21":0,"22–24":1,"25–27":1,"28–30":1,"31–34":1,"35–39":3,"40–44":0,"45–49":0,"50–59":0,"60+":0},"Massagem / Relaxamento":{"10–17":0,"18–21":0,"22–24":0,"25–27":1,"28–30":0,"31–34":2,"35–39":5,"40–44":2,"45–49":0,"50–59":0,"60+":0},"Drenagem Linfática":{"10–17":0,"18–21":0,"22–24":1,"25–27":2,"28–30":1,"31–34":6,"35–39":3,"40–44":1,"45–49":1,"50–59":3,"60+":0},"Radiofrequência":{"10–17":0,"18–21":0,"22–24":0,"25–27":0,"28–30":1,"31–34":0,"35–39":1,"40–44":0,"45–49":0,"50–59":0,"60+":0},"Método NC Experience":{"10–17":0,"18–21":0,"22–24":0,"25–27":1,"28–30":0,"31–34":0,"35–39":1,"40–44":0,"45–49":0,"50–59":0,"60+":0},"Lipocavitação":{"10–17":0,"18–21":0,"22–24":0,"25–27":0,"28–30":0,"31–34":1,"35–39":0,"40–44":0,"45–49":0,"50–59":0,"60+":0}},"all_dist":{"10–17":9,"18–21":5,"22–24":17,"25–27":32,"28–30":25,"31–34":62,"35–39":62,"40–44":47,"45–49":25,"50–59":36,"60+":9},"all_total":329,"all_media":37.5,"all_mediana":35,"labels":["10–17","18–21","22–24","25–27","28–30","31–34","35–39","40–44","45–49","50–59","60+"]};
+const META = {"Depilação a Laser":{"pub":"Mulheres, 25–44 anos","nota":"Pico em 31–34. Faixa 40–44 forte (13,5%). Excluir menores de 18 no Meta.","cor":"#bca366"},"Criolipólise":{"pub":"Mulheres, 30–49 anos","nota":"Público mais maduro. Mediana 38a. Foco em resultado corporal e autoestima.","cor":"#7aa8c8"},"Toxina Botulínica":{"pub":"Mulheres, 35–54 anos","nota":"Público mais velho da clínica. Mediana 42a. Linguagem de prevenção e naturalidade.","cor":"#9a7ab0"},"Preenchimento":{"pub":"Mulheres, 28–49 anos","nota":"Mediana 34a. Testar criativos segmentados: lábios (jovens) vs volume facial (maduras).","cor":"#b07a9a"},"Harmonização Facial":{"pub":"Mulheres, 28–44 anos","nota":"Procedimento de alto ticket. Criativos de transformação e confiança.","cor":"#c8903a"},"Bioestimuladores / PDRN":{"pub":"Mulheres, 38–58 anos","nota":"Mediana 43a — o mais velho da clínica. Foco em longevidade, pele saudável, antienvelhecimento.","cor":"#7ab0a0"},"Limpeza de Pele":{"pub":"Mulheres, 22–49 anos","nota":"Distribuída, bom para topo de funil. Porta de entrada da clínica.","cor":"#a0b07a"},"Peeling / Skin Glow":{"pub":"Mulheres, 22–40 anos","nota":"Público mais jovem. Criativos de brilho, uniformização, resultado rápido.","cor":"#c8b07a"},"Drenagem Linfática":{"pub":"Mulheres, 28–44 anos","nota":"Mediana 35a. Criativos pós-operatório, inchaço, leveza, bem-estar.","cor":"#7a90b0"},"Detox":{"pub":"Mulheres, 28–49 anos","nota":"Mediana 36a. Criativos de energia, disposição, emagrecimento saudável.","cor":"#b0a07a"},"Lipocavitação":{"pub":"Mulheres, 25–44 anos","nota":"Público jovem-adulto. Associar ao corpo definido, resultado pós-academia.","cor":"#90b07a"},"Carboxiterapia":{"pub":"Mulheres, 25–44 anos","nota":"Versatil — olheiras, gordura, celulite. Criativo depende da indicação.","cor":"#a07a90"},"Massagem / Relaxamento":{"pub":"Mulheres, 28–49 anos","nota":"Mediana 37a. Criativos de bem-estar, descanso, rotina de autocuidado.","cor":"#7a9090"},"NC Sculpt & Detox":{"pub":"Mulheres, 28–44 anos","nota":"Protocolo exclusivo. Criativos premium de transformação corporal.","cor":"#bca366"},"Método NC Experience":{"pub":"Mulheres, 25–40 anos","nota":"Protocolo exclusivo. Linguagem de resultado exclusivo e experiência premium.","cor":"#bca366"},"Estética Íntima":{"pub":"Mulheres, 30–49 anos","nota":"Segmento sensível. Usar interesses relacionados à saúde feminina e bem-estar íntimo.","cor":"#b07a9a"},"Eletroestimulação":{"pub":"Mulheres, 28–44 anos","nota":"Associar ao resultado muscular e corporal. Criativos de definição e tonificação.","cor":"#7aa8c8"},"Lipedema / ILIB":{"pub":"Mulheres, 30–54 anos","nota":"Público específico. Interesses: lipedema, drenagem, saúde da mulher.","cor":"#b07a7a"},"Outros":{"pub":"Mulheres, 30–54 anos","nota":"Categoria mista. Público mais maduro com maior ticket médio.","cor":"#666"}};
+
+function switchTab(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// KPIs
+document.getElementById('g-total').textContent   = D.all_total;
+document.getElementById('g-media').textContent   = D.all_media+'a';
+document.getElementById('g-mediana').textContent = D.all_mediana+'a';
+document.getElementById('g-cats').textContent    = D.cats.length;
+
+// Bar chart helper
+function barChart(containerId, dist, accent, smallBars){
+  const el = document.getElementById(containerId);
+  const maxV = Math.max(...Object.values(dist), 1);
+  const total = Object.values(dist).reduce((a,b)=>a+b,0);
+  const h = smallBars ? 18 : 22;
+  el.innerHTML = Object.entries(dist).map(([lbl,cnt])=>{
+    const pct = (cnt/maxV*100).toFixed(1);
+    const pctT = total ? (cnt/total*100).toFixed(0) : 0;
+    const inside = smallBars ? cnt >= 4 : cnt >= 8;
+    return `<div class="bar-row">
+      <span class="bar-label" style="font-size:${smallBars?'10px':'11px'}">${lbl}</span>
+      <div class="bar-track" style="height:${h}px">
+        <div class="bar-fill" style="width:${pct}%;background:${accent||'var(--gold-dim)'}">
+          ${inside?`<span class="bar-cnt" style="font-size:${smallBars?'9px':'10px'}">${cnt}p · ${pctT}%</span>`:''}
+        </div>
+        ${!inside?`<span class="bar-cnt-out" style="font-size:${smallBars?'9px':'10px'}">${cnt} · ${pctT}%</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+barChart('chart-geral', D.all_dist);
+
+// Overview grid
+const ov = document.getElementById('ov-grid');
+ov.innerHTML = D.cats.map(c=>{
+  const m = META[c.categoria]||{};
+  const acc = m.cor||'var(--gold-dim)';
+  return `<div class="ov-card" style="border-left-color:${acc}">
+    <div class="ov-name">${c.categoria}</div>
+    <div class="ov-stats">
+      <div><div class="ov-stat-val" style="color:${acc}">${c.pacientes_unicas}</div><div class="ov-stat-label">Pac.</div></div>
+      <div><div class="ov-stat-val" style="color:var(--white-dim)">${Math.round(c.idade_mediana)}a</div><div class="ov-stat-label">Mediana</div></div>
+    </div>
+  </div>`;
+}).join('');
+
+// Cat cards
+const grid = document.getElementById('cats-grid');
+grid.innerHTML = D.cats.map((c,i)=>{
+  const m = META[c.categoria]||{};
+  const acc = m.cor||'var(--gold-dim)';
+  const dist = D.cat_age_dist[c.categoria]||{};
+  const vals = Object.values(dist);
+  const maxV = Math.max(...vals,1);
+  const miniBars = vals.map(v=>{
+    const h = Math.max(3, Math.round(v/maxV*28));
+    return `<div class="mb" style="height:${h}px;background:${v===maxV?acc:'var(--border2)'}"></div>`;
+  }).join('');
+  return `<div class="cat-card" id="cc${i}" style="border-left-color:${acc}" onclick="selCat(${i})">
+    <div class="cat-name">${c.categoria}</div>
+    <div class="cat-stats">
+      <div><div class="cs-val" style="color:${acc}">${c.pacientes_unicas}</div><div class="cs-label">Pac.</div></div>
+      <div><div class="cs-val" style="color:var(--white-dim)">${Math.round(c.idade_media)}a</div><div class="cs-label">Média</div></div>
+      <div><div class="cs-val" style="color:var(--white-dim)">${Math.round(c.idade_mediana)}a</div><div class="cs-label">Mediana</div></div>
+    </div>
+    <div class="mini-bars">${miniBars}</div>
+  </div>`;
+}).join('');
+
+function selCat(i){
+  const c = D.cats[i];
+  const m = META[c.categoria]||{};
+  const acc = m.cor||'var(--gold-dim)';
+  document.querySelectorAll('.cat-card').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('cc'+i).classList.add('sel');
+
+  document.getElementById('d-title').textContent = c.categoria;
+  document.getElementById('d-chart').innerHTML = '<div id="dc-inner"></div>';
+  document.getElementById('dc-inner').id='dc-inner';
+
+  const dist = D.cat_age_dist[c.categoria]||{};
+  const dcEl = document.getElementById('d-title').parentElement.querySelector('#d-chart');
+  dcEl.innerHTML = '<div id="dc-inner"></div>';
+  barChart('dc-inner', dist, acc, true);
+
+  document.getElementById('d-meta').innerHTML = `
+    <div class="meta-title" style="color:${acc}">Público recomendado · Meta Ads</div>
+    <div class="meta-pub" style="color:${acc}">${m.pub||'—'}</div>
+    <div class="meta-note">${m.nota||''}</div>`;
+  document.getElementById('d-meta').style.borderColor = acc;
+  document.getElementById('d-meta').style.background = acc+'11';
+
+  document.getElementById('d-kpis').innerHTML = `
+    <div class="dk"><div class="dk-val" style="color:${acc}">${Math.round(c.idade_media)}a</div><div class="dk-label">Idade média</div></div>
+    <div class="dk"><div class="dk-val" style="color:${acc}">${Math.round(c.idade_mediana)}a</div><div class="dk-label">Mediana</div></div>
+    <div class="dk"><div class="dk-val">${c.pacientes_unicas}</div><div class="dk-label">Pacientes únicas</div></div>
+    <div class="dk"><div class="dk-val">${c.sessoes}</div><div class="dk-label">Sessões</div></div>`;
+
+  const det = document.getElementById('detail');
+  det.classList.add('open');
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
