@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NC Clinic · Gestão de Laser</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@100;200;300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --gold:#bca366;--gold-dim:#8a7548;--gold-faint:rgba(188,163,102,0.07);
+  --black:#0a0a0a;--card:#141414;--card2:#1b1b1b;
+  --border:#222;--border2:#2d2d2d;
+  --white:#f0ece4;--white-dim:#9a9286;--white-faint:#5a5248;
+  --red:#c05050;--red-faint:rgba(192,80,80,0.09);
+  --amber:#c8903a;--amber-faint:rgba(200,144,58,0.09);
+  --green:#5a9e6a;--green-faint:rgba(90,158,106,0.09);
+  --blue:#5a82b0;--blue-faint:rgba(90,130,176,0.09);
+  --purple:#9a70c0;--purple-faint:rgba(154,112,192,0.09);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--white);font-family:'Archivo',sans-serif;font-weight:200;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* NAV */
+.nav{display:flex;align-items:center;border-bottom:1px solid var(--border);background:rgba(10,10,10,0.97);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);flex-wrap:wrap;}
+.logo{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:20px;letter-spacing:0.2em;color:var(--gold);padding:13px 22px;border-right:1px solid var(--border);white-space:nowrap;}
+.logo span{display:block;font-size:8px;letter-spacing:0.35em;text-transform:uppercase;color:var(--white-faint);margin-top:2px;}
+.nav-right{display:flex;align-items:center;gap:8px;padding:8px 18px;flex:1;flex-wrap:wrap;}
+.fp{padding:5px 13px;border:1px solid var(--border2);background:transparent;color:var(--white-dim);font-family:'Archivo',sans-serif;font-size:10px;font-weight:200;letter-spacing:0.08em;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.fp:hover{border-color:var(--white-faint);}
+.fp.active{font-weight:400;color:var(--black)!important;}
+.fp[data-p="all"].active          {background:var(--gold);border-color:var(--gold);}
+.fp[data-p="agendar_agora"].active{background:var(--red);border-color:var(--red);}
+.fp[data-p="agendada"].active     {background:var(--green);border-color:var(--green);}
+.fp[data-p="em_risco"].active     {background:var(--amber);border-color:var(--amber);}
+.fp[data-p="reativar"].active     {background:var(--purple);border-color:var(--purple);}
+.fp[data-p="inativa"].active      {background:#555;border-color:#555;color:var(--white)!important;}
+.fp[data-p="monitorar"].active    {background:var(--blue);border-color:var(--blue);}
+.nav-upload{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.upload-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--gold-dim);color:var(--gold);font-family:'Archivo',sans-serif;font-size:10px;font-weight:200;letter-spacing:0.1em;cursor:pointer;background:transparent;transition:all .18s;}
+.upload-btn:hover{background:var(--gold-faint);}
+.upload-btn svg{flex-shrink:0;}
+#file-input{display:none;}
+.date-wrap{display:flex;align-items:center;gap:6px;}
+.date-label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--white-faint);}
+input[type=date]{background:var(--black);border:1px solid var(--border2);color:var(--white);font-family:'Archivo',sans-serif;font-weight:200;font-size:11px;padding:5px 9px;outline:none;cursor:pointer;}
+input[type=date]:focus{border-color:var(--gold-dim);}
+
+/* SEARCH BAR */
+.sbar{padding:10px 22px;border-bottom:1px solid var(--border);background:var(--card);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.sw{position:relative;flex:1;max-width:340px;}
+.sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.3;pointer-events:none;}
+input[type=text]{width:100%;background:var(--black);border:1px solid var(--border2);color:var(--white);font-family:'Archivo',sans-serif;font-weight:200;font-size:13px;padding:8px 12px 8px 32px;outline:none;transition:border-color .2s;}
+input[type=text]:focus{border-color:var(--gold-dim);}
+input[type=text]::placeholder{color:var(--white-faint);}
+select{background:var(--black);border:1px solid var(--border2);color:var(--white);font-family:'Archivo',sans-serif;font-weight:200;font-size:11px;padding:7px 26px 7px 10px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a7548'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.rinfo{font-size:10px;color:var(--white-faint);margin-left:auto;white-space:nowrap;}
+
+/* UPLOAD FEEDBACK */
+.upload-status{padding:10px 22px;border-bottom:1px solid var(--border);font-size:11px;display:none;align-items:center;gap:8px;}
+.upload-status.ok  {background:var(--green-faint);color:var(--green);display:flex;}
+.upload-status.err {background:var(--red-faint);color:var(--red);display:flex;}
+
+/* KPI STRIP */
+.kstrip{display:flex;gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.kpi{background:var(--card);padding:12px 14px;flex:1;min-width:0;cursor:pointer;transition:background .15s;text-align:center;}
+.kpi:hover{background:var(--card2);}
+.kval{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;line-height:1;}
+.klabel{font-size:7px;letter-spacing:0.22em;text-transform:uppercase;color:var(--white-faint);margin-top:3px;}
+
+/* STORAGE INFO */
+.storage-bar{padding:7px 22px;border-bottom:1px solid var(--border);background:rgba(188,163,102,0.02);display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.sinfo{font-size:9px;color:var(--white-faint);letter-spacing:0.04em;}
+.sinfo strong{color:var(--white-dim);font-weight:300;}
+.clear-btn{font-size:9px;letter-spacing:0.1em;padding:3px 10px;border:1px solid var(--border2);color:var(--white-faint);background:transparent;cursor:pointer;font-family:'Archivo',sans-serif;}
+.clear-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* TABLE */
+.tw{overflow-x:auto;padding:0 22px 80px;}
+table{width:100%;border-collapse:collapse;min-width:820px;}
+thead th{font-size:8px;letter-spacing:0.28em;text-transform:uppercase;color:var(--white-faint);font-weight:400;padding:12px 10px 8px;border-bottom:1px solid var(--border2);text-align:left;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:hover{background:rgba(188,163,102,0.03);}
+tbody tr.agendada-row{opacity:0.5;}
+tbody tr.agendada-row:hover{opacity:0.8;}
+td{padding:11px 10px;font-size:12px;color:var(--white-dim);vertical-align:middle;}
+td.nm{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--white);letter-spacing:0.02em;}
+
+.pbadge{display:inline-flex;align-items:center;gap:5px;font-size:9px;letter-spacing:0.09em;padding:3px 9px;border:1px solid;white-space:nowrap;}
+.pbadge .dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.pbadge.agendar_agora{border-color:var(--red);color:var(--red);background:var(--red-faint);}
+.pbadge.agendada     {border-color:var(--green);color:var(--green);background:var(--green-faint);}
+.pbadge.em_risco     {border-color:var(--amber);color:var(--amber);background:var(--amber-faint);}
+.pbadge.reativar     {border-color:var(--purple);color:var(--purple);background:var(--purple-faint);}
+.pbadge.inativa      {border-color:#555;color:#888;}
+.pbadge.monitorar    {border-color:var(--blue);color:var(--blue);background:var(--blue-faint);}
+
+.sess-bar{display:flex;gap:2px;align-items:flex-end;margin-bottom:3px;}
+.sbox{width:7px;height:7px;background:var(--border2);}
+.sbox.done{background:var(--gold-dim);}
+.sbox.last{background:var(--gold);}
+
+.dc{display:inline-block;font-size:10px;padding:2px 8px;border:1px solid;}
+.dc.passou {border-color:var(--red);color:var(--red);background:var(--red-faint);}
+.dc.urgente{border-color:var(--amber);color:var(--amber);}
+.dc.breve  {border-color:var(--gold-dim);color:var(--gold);}
+.dc.longe  {border-color:var(--border2);color:var(--white-faint);}
+
+/* Confirm button inline */
+.confirm-btn{display:inline-flex;align-items:center;gap:5px;font-size:9px;letter-spacing:0.06em;padding:4px 11px;border:1px solid var(--green);color:var(--green);background:transparent;cursor:pointer;font-family:'Archivo',sans-serif;font-weight:200;transition:all .18s;white-space:nowrap;}
+.confirm-btn:hover{background:var(--green-faint);}
+.undo-btn{display:inline-flex;align-items:center;gap:5px;font-size:9px;letter-spacing:0.06em;padding:4px 11px;border:1px solid var(--border2);color:var(--white-faint);background:transparent;cursor:pointer;font-family:'Archivo',sans-serif;font-weight:200;transition:all .18s;white-space:nowrap;}
+.undo-btn:hover{border-color:var(--amber);color:var(--amber);}
+
+.no-tel{color:var(--red);font-size:10px;font-style:italic;}
+.empty{text-align:center;padding:80px;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--white-faint);font-style:italic;}
+
+/* PANEL */
+.ov{position:fixed;inset:0;background:rgba(10,10,10,0.88);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.ov.open{display:flex;}
+.panel{background:var(--card);border:1px solid var(--border2);width:100%;max-width:520px;max-height:88vh;overflow-y:auto;}
+.ph{padding:20px 22px 15px;border-bottom:1px solid var(--border);position:relative;}
+.pname{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--white);}
+.psub{font-size:11px;color:var(--white-faint);margin-top:4px;display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.pclose{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--white-faint);font-size:18px;cursor:pointer;}
+.pclose:hover{color:var(--white);}
+.pb{padding:18px 22px;}
+.alerta{padding:11px 14px;margin-bottom:14px;border-left:3px solid;font-size:11px;color:var(--white-dim);line-height:1.6;}
+.alerta.a{border-color:var(--red);background:var(--red-faint);}
+.alerta.r{border-color:var(--amber);background:var(--amber-faint);}
+.alerta.p{border-color:var(--purple);background:var(--purple-faint);}
+.alerta.g{border-color:var(--green);background:var(--green-faint);}
+.alerta strong{color:var(--white);font-weight:300;}
+.pstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);margin-bottom:14px;}
+.ps{background:var(--card2);padding:11px 11px;}
+.psval{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);}
+.pslabel{font-size:7px;letter-spacing:0.26em;text-transform:uppercase;color:var(--white-faint);margin-top:2px;}
+.psec{font-size:8px;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-dim);margin:14px 0 8px;}
+.timeline{position:relative;padding-left:20px;}
+.timeline::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:1px;background:var(--border2);}
+.titem{position:relative;padding:6px 0;border-bottom:1px solid var(--border);}
+.titem::before{content:'';position:absolute;left:-17px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:var(--border2);}
+.titem:first-child::before{background:var(--gold);}
+.tnum{font-size:8px;color:var(--white-faint);}
+.tdate{font-size:12px;color:var(--white-dim);}
+.area-tag{display:inline-block;font-size:9px;padding:2px 8px;border:1px solid var(--border2);color:var(--white-faint);margin:2px;}
+
+/* Panel action buttons */
+.panel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.panel-confirm{padding:10px 18px;border:1px solid var(--green);color:var(--green);background:transparent;font-family:'Archivo',sans-serif;font-size:11px;font-weight:200;letter-spacing:0.08em;cursor:pointer;transition:all .18s;}
+.panel-confirm:hover{background:var(--green-faint);}
+.panel-undo{padding:10px 18px;border:1px solid var(--border2);color:var(--white-faint);background:transparent;font-family:'Archivo',sans-serif;font-size:11px;font-weight:200;letter-spacing:0.08em;cursor:pointer;transition:all .18s;}
+.panel-undo:hover{border-color:var(--amber);color:var(--amber);}
+.wa-btn{display:flex;align-items:center;gap:7px;padding:10px 15px;background:transparent;border:1px solid #25d366;color:#25d366;font-family:'Archivo',sans-serif;font-size:11px;font-weight:200;letter-spacing:0.07em;cursor:pointer;text-decoration:none;width:fit-content;transition:background .2s;}
+.wa-btn:hover{background:rgba(37,211,102,0.08);}
+
+/* MODAL upload confirm */
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,10,0.92);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border2);padding:28px;max-width:440px;width:100%;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--white);margin-bottom:8px;}
+.modal-body{font-size:12px;color:var(--white-dim);line-height:1.7;margin-bottom:20px;}
+.modal-body strong{color:var(--white);font-weight:300;}
+.modal-actions{display:flex;gap:8px;}
+.modal-btn{padding:9px 20px;border:1px solid;font-family:'Archivo',sans-serif;font-size:11px;font-weight:200;letter-spacing:0.08em;cursor:pointer;transition:all .18s;}
+.modal-btn.ok  {border-color:var(--gold);color:var(--gold);background:transparent;}
+.modal-btn.ok:hover{background:var(--gold-faint);}
+.modal-btn.cancel{border-color:var(--border2);color:var(--white-dim);background:transparent;}
+.modal-btn.cancel:hover{border-color:var(--white-faint);}
+
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--black);}
+::-webkit-scrollbar-thumb{background:var(--border2);}
+@media(max-width:640px){.kstrip{flex-wrap:wrap;}.kpi{min-width:calc(33% - 1px);}.tw{padding:0 10px 60px;}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">NC CLINIC <span>Gestão de Laser · HAKON 4D</span></div>
+  <div class="nav-right">
+    <button class="fp active" data-p="all">Todas</button>
+    <button class="fp" data-p="agendar_agora">⚡ Agendar agora</button>
+    <button class="fp" data-p="agendada">✓ Agendadas</button>
+    <button class="fp" data-p="em_risco">⚠ Em risco</button>
+    <button class="fp" data-p="reativar">↩ Reativar</button>
+    <button class="fp" data-p="inativa">Inativas</button>
+    <button class="fp" data-p="monitorar">Monitorar</button>
+  </div>
+  <div class="nav-upload">
+    <div class="date-wrap">
+      <span class="date-label">Hoje</span>
+      <input type="date" id="today-date">
+    </div>
+    <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar planilha
+    </button>
+    <input type="file" id="file-input" accept=".xlsx,.xls">
+  </div>
+</nav>
+
+<!-- SEARCH -->
+<div class="sbar">
+  <div class="sw">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bca366" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search" placeholder="Buscar paciente…">
+  </div>
+  <select id="sort">
+    <option value="prioridade">Prioridade</option>
+    <option value="proxima">Próxima sessão</option>
+    <option value="ultima_asc">Última sessão (mais antiga)</option>
+    <option value="ultima_desc">Última sessão (mais recente)</option>
+    <option value="sessoes_desc">Mais sessões</option>
+    <option value="nome">Nome A→Z</option>
+  </select>
+  <span class="rinfo" id="rinfo"></span>
+</div>
+
+<!-- UPLOAD STATUS -->
+<div class="upload-status" id="upload-status"></div>
+
+<!-- KPI STRIP -->
+<div class="kstrip">
+  <div class="kpi" onclick="setFilter('all')">       <div class="kval" id="k0" style="color:var(--gold)"></div><div class="klabel">Total</div></div>
+  <div class="kpi" onclick="setFilter('agendar_agora')"><div class="kval" id="k1" style="color:var(--red)"></div><div class="klabel">Agendar agora</div></div>
+  <div class="kpi" onclick="setFilter('agendada')">  <div class="kval" id="k2" style="color:var(--green)"></div><div class="klabel">Agendadas</div></div>
+  <div class="kpi" onclick="setFilter('em_risco')">  <div class="kval" id="k3" style="color:var(--amber)"></div><div class="klabel">Em risco</div></div>
+  <div class="kpi" onclick="setFilter('reativar')">  <div class="kval" id="k4" style="color:var(--purple)"></div><div class="klabel">Reativar</div></div>
+  <div class="kpi" onclick="setFilter('monitorar')"> <div class="kval" id="k5" style="color:var(--blue)"></div><div class="klabel">Monitorar</div></div>
+</div>
+
+<!-- STORAGE INFO -->
+<div class="storage-bar">
+  <span class="sinfo">Base: <strong id="info-total">—</strong> pacientes · Última importação: <strong id="info-import">—</strong> · Agendadas este mês: <strong id="info-agendadas">—</strong></span>
+  <button class="clear-btn" onclick="confirmClearData()">Limpar base de dados</button>
+</div>
+
+<!-- TABLE -->
+<div class="tw">
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Paciente</th>
+        <th>Telefone</th>
+        <th>Sessões</th>
+        <th>Última Sessão</th>
+        <th>Próxima (28d)</th>
+        <th>Agendamento</th>
+        <th>Áreas</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="empty" id="empty" style="display:none">Nenhuma paciente encontrada.</div>
+</div>
+
+<!-- PANEL -->
+<div class="ov" id="ov">
+  <div class="panel">
+    <div class="ph">
+      <button class="pclose" id="pclose">✕</button>
+      <div class="pname" id="pname"></div>
+      <div class="psub" id="psub"></div>
+    </div>
+    <div class="pb">
+      <div id="palerta"></div>
+      <div class="pstats" id="pstats"></div>
+      <div class="panel-actions" id="panel-actions"></div>
+      <div class="psec">Histórico de sessões</div>
+      <div class="timeline" id="phist"></div>
+      <div class="psec">Áreas realizadas</div>
+      <div id="pareas" style="margin-top:4px"></div>
+      <div style="margin-top:16px">
+        <a class="wa-btn" id="pwa" href="#" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Abrir no WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-btn ok" id="modal-ok">Confirmar</button>
+      <button class="modal-btn cancel" id="modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const STORAGE_KEY   = 'nc_laser_base';
+const CONFIRMED_KEY = 'nc_laser_confirmadas';
+const IMPORT_KEY    = 'nc_laser_ultima_importacao';
+const INTERVAL      = 28;
+
+const SEED = [{"nome":"Ana Beraldo","telefone":"44999080297","total_sessoes":4,"primeira_sessao":"22/03/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["21/06/2026","21/06/2026","22/03/2026","22/03/2026"]},{"nome":"Ana Claudia Panza Maia","telefone":"44999199091","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/12/2025","24/05/2026","26/04/2026"]},{"nome":"Andrea Fernandes Marconcin","telefone":"42988018959","total_sessoes":13,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Barba / Face ","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["21/06/2026","21/06/2026","21/12/2025","21/12/2025","22/02/2026","22/02/2026","22/02/2026","22/03/2026","22/03/2026","24/05/2026","24/05/2026","24/05/2026","24/05/2026"]},{"nome":"Andressa Trevisan","telefone":"44991710589","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas"],"datas":["21/06/2026","21/12/2025","22/02/2026","22/03/2026"]},{"nome":"Angela Paula Galvão Fernandes","telefone":"44999481618","total_sessoes":8,"primeira_sessao":"22/12/2025","ultima_sessao":"22/06/2026","areas":["Depilação - Buço","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["22/06/2026","22/12/2025","22/12/2025","23/03/2026","23/03/2026","25/05/2026","26/01/2026","26/01/2026"]},{"nome":"Anne Sophia Pereira Borges","telefone":"44984365056","total_sessoes":5,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Buço"],"datas":["21/06/2026","21/12/2025","22/03/2026","24/05/2026","24/05/2026"]},{"nome":"Ariane Britta Prando","telefone":"44999760960","total_sessoes":7,"primeira_sessao":"22/02/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Perna Inteira","Depilação - Virilha Completa"],"datas":["21/06/2026","22/02/2026","22/02/2026","22/02/2026","22/03/2026","22/03/2026","22/03/2026"]},{"nome":"Arielle Oliveira Lobato","telefone":"44984333361","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/12/2025","22/03/2026","24/05/2026"]},{"nome":"Barbara Cardoso Rodrigues","telefone":"44984181314","total_sessoes":9,"primeira_sessao":"22/02/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/02/2026","22/02/2026","22/03/2026","22/03/2026","22/06/2026","22/06/2026","24/05/2026","24/05/2026","26/04/2026"]},{"nome":"Camile Fernanda Squisatti","telefone":"44999522820","total_sessoes":3,"primeira_sessao":"22/06/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["22/06/2026","22/06/2026","22/06/2026"]},{"nome":"Cleide Duarte De Camargo","telefone":"44999161237","total_sessoes":5,"primeira_sessao":"25/01/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Barba / Face "],"datas":["21/06/2026","22/03/2026","23/02/2026","25/01/2026","26/04/2026"]},{"nome":"Daiane Cristina Petreca","telefone":"44999379420","total_sessoes":1,"primeira_sessao":"21/06/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Virilha Completa"],"datas":["21/06/2026"]},{"nome":"Eliandra Mendonça","telefone":"44999975251","total_sessoes":15,"primeira_sessao":"26/01/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["22/06/2026","22/06/2026","22/06/2026","23/02/2026","23/02/2026","23/02/2026","23/03/2026","23/03/2026","23/03/2026","26/01/2026","26/01/2026","26/01/2026","27/04/2026","27/04/2026","27/04/2026"]},{"nome":"Erika Garcia","telefone":"4491374475","total_sessoes":17,"primeira_sessao":"21/12/2025","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["21/12/2025","21/12/2025","22/02/2026","22/02/2026","22/02/2026","22/03/2026","22/03/2026","22/03/2026","22/06/2026","24/05/2026","24/05/2026","25/01/2026","25/01/2026","25/01/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Estefany Guimarães De Freitas","telefone":"44999081106","total_sessoes":3,"primeira_sessao":"22/03/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas"],"datas":["22/03/2026","22/06/2026","26/04/2026"]},{"nome":"Gabriela Colombo Cardoso","telefone":"44997633371","total_sessoes":8,"primeira_sessao":"23/02/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/06/2026","22/06/2026","23/02/2026","23/02/2026","23/03/2026","23/03/2026","27/04/2026","27/04/2026"]},{"nome":"Gabriela De Souza","telefone":"44997349497","total_sessoes":7,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas"],"datas":["21/06/2026","21/12/2025","22/03/2026","23/02/2026","24/05/2026","25/01/2026","26/04/2026"]},{"nome":"Geisa Souza Barbosa Spoladore","telefone":"44999837959","total_sessoes":1,"primeira_sessao":"22/06/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Barba / Face "],"datas":["22/06/2026"]},{"nome":"Gleica Fiaux","telefone":"","total_sessoes":6,"primeira_sessao":"25/01/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Meia Perna"],"datas":["21/06/2026","21/06/2026","22/02/2026","22/03/2026","24/05/2026","25/01/2026"]},{"nome":"Helene Prando","telefone":"","total_sessoes":2,"primeira_sessao":"21/06/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Perna Inteira"],"datas":["21/06/2026","21/06/2026"]},{"nome":"Ires Ramos Dias","telefone":"44997711784","total_sessoes":4,"primeira_sessao":"24/05/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["21/06/2026","21/06/2026","24/05/2026","24/05/2026"]},{"nome":"Janete Gonçalves Correia Quallio","telefone":"44984460887","total_sessoes":6,"primeira_sessao":"25/01/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas"],"datas":["22/02/2026","22/03/2026","22/06/2026","25/01/2026","25/05/2026","26/04/2026"]},{"nome":"Jessica Menezes","telefone":"44998144095","total_sessoes":9,"primeira_sessao":"27/11/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/12/2025","25/01/2026","25/01/2026","25/05/2026","26/04/2026","26/04/2026","27/11/2025","27/11/2025"]},{"nome":"Karina Almeida Da Paz Zibetti","telefone":"44998292916","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Barba / Face "],"datas":["21/06/2026","21/12/2025","23/02/2026","24/05/2026","25/01/2026","27/04/2026"]},{"nome":"Kenia Katsumata","telefone":"44998493944","total_sessoes":10,"primeira_sessao":"26/01/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/06/2026","22/02/2026","22/02/2026","22/03/2026","22/03/2026","26/01/2026","26/01/2026","26/04/2026","26/04/2026"]},{"nome":"Larissa Borges Silva","telefone":"44999411735","total_sessoes":4,"primeira_sessao":"26/01/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas"],"datas":["21/06/2026","23/02/2026","23/03/2026","26/01/2026"]},{"nome":"Livia Vignoto","telefone":"","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"22/06/2026","areas":["Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["21/12/2025","22/06/2026","23/02/2026","25/05/2026","26/01/2026","27/04/2026"]},{"nome":"Maria Beatriz Venturini","telefone":"44997098366","total_sessoes":9,"primeira_sessao":"23/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/06/2026","22/02/2026","22/03/2026","23/12/2025","24/05/2026","24/05/2026","25/01/2026","26/04/2026"]},{"nome":"Maria Eduarda Siqueira Pinheiro","telefone":"44999414774","total_sessoes":12,"primeira_sessao":"21/12/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Meia Perna","Depilação - Peito","Depilação - Virilha Completa"],"datas":["21/06/2026","21/06/2026","21/12/2025","21/12/2025","22/02/2026","22/02/2026","22/03/2026","22/03/2026","24/05/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Maria Eugênia Dachery","telefone":"42988011238","total_sessoes":7,"primeira_sessao":"22/03/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Axilas","Depilação - Barba / Face ","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["22/03/2026","22/03/2026","22/06/2026","22/06/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Mariane Teza","telefone":"44998450354","total_sessoes":1,"primeira_sessao":"21/06/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Virilha Completa"],"datas":["21/06/2026"]},{"nome":"Nathaly Saúna","telefone":"44984395103","total_sessoes":2,"primeira_sessao":"21/06/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["21/06/2026","21/06/2026"]},{"nome":"Poliana Sebrian","telefone":"44984373005","total_sessoes":8,"primeira_sessao":"22/02/2026","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/06/2026","21/06/2026","22/02/2026","22/03/2026","24/05/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Rafaela Aparecida Balbino Teixeira Batistuti","telefone":"44991545442","total_sessoes":2,"primeira_sessao":"24/05/2026","ultima_sessao":"22/06/2026","areas":["Depilação - Virilha Completa"],"datas":["22/06/2026","24/05/2026"]},{"nome":"Tamara Romão De Assis","telefone":"44997735326","total_sessoes":8,"primeira_sessao":"13/11/2025","ultima_sessao":"21/06/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial","Laser Pisom"],"datas":["13/11/2025","21/06/2026","21/12/2025","22/02/2026","23/11/2025","23/11/2025","24/05/2026","26/04/2026"]},{"nome":"Camilla Vilela","telefone":"43996729925","total_sessoes":15,"primeira_sessao":"22/12/2025","ultima_sessao":"25/05/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["22/12/2025","22/12/2025","22/12/2025","23/02/2026","23/02/2026","23/02/2026","23/03/2026","23/03/2026","23/03/2026","25/05/2026","25/05/2026","25/05/2026","27/04/2026","27/04/2026","27/04/2026"]},{"nome":"Cassiana Toledo Barros Silva","telefone":"44999614490","total_sessoes":1,"primeira_sessao":"25/05/2026","ultima_sessao":"25/05/2026","areas":["Depilação - Perna Inteira"],"datas":["25/05/2026"]},{"nome":"Caterine Andrade Simão","telefone":"44998814815","total_sessoes":3,"primeira_sessao":"21/12/2025","ultima_sessao":"25/05/2026","areas":["Depilação - Virilha Completa"],"datas":["21/12/2025","23/03/2026","25/05/2026"]},{"nome":"Franciele Da Costa Fernandes","telefone":"44998159802","total_sessoes":4,"primeira_sessao":"22/12/2025","ultima_sessao":"25/05/2026","areas":["Depilação - Virilha Completa"],"datas":["22/12/2025","23/02/2026","25/01/2026","25/05/2026"]},{"nome":"Isabela Domene","telefone":"44999329193","total_sessoes":3,"primeira_sessao":"22/12/2025","ultima_sessao":"25/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["22/12/2025","23/02/2026","25/05/2026"]},{"nome":"Isabeli Caldeira","telefone":"","total_sessoes":15,"primeira_sessao":"26/01/2026","ultima_sessao":"25/05/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["23/02/2026","23/02/2026","23/02/2026","23/03/2026","23/03/2026","23/03/2026","25/05/2026","25/05/2026","25/05/2026","26/01/2026","26/01/2026","26/01/2026","27/04/2026","27/04/2026","27/04/2026"]},{"nome":"Isabella Cardoso Martins","telefone":"44991843457","total_sessoes":2,"primeira_sessao":"27/04/2026","ultima_sessao":"25/05/2026","areas":["Depilação - Virilha Completa"],"datas":["25/05/2026","27/04/2026"]},{"nome":"Isabelle Prudêncio","telefone":"","total_sessoes":6,"primeira_sessao":"24/11/2025","ultima_sessao":"25/05/2026","areas":["Depilação - Axilas"],"datas":["23/02/2026","23/03/2026","24/11/2025","25/05/2026","26/01/2026","27/04/2026"]},{"nome":"Juliana Miguel Fernandes Da Silva","telefone":"44997730183","total_sessoes":8,"primeira_sessao":"23/02/2026","ultima_sessao":"25/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["23/02/2026","23/02/2026","23/03/2026","23/03/2026","25/05/2026","25/05/2026","27/04/2026","27/04/2026"]},{"nome":"Michele Andressa Pereira","telefone":"44991676707","total_sessoes":1,"primeira_sessao":"25/05/2026","ultima_sessao":"25/05/2026","areas":["Depilação - Barba / Face "],"datas":["25/05/2026"]},{"nome":"Aline Coelho","telefone":"44999234575","total_sessoes":5,"primeira_sessao":"22/02/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["22/02/2026","22/03/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Ana Carolina De Souza","telefone":"44998186488","total_sessoes":2,"primeira_sessao":"27/04/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas"],"datas":["24/05/2026","27/04/2026"]},{"nome":"Elinete Miranda Ramos","telefone":"44984393838","total_sessoes":1,"primeira_sessao":"24/05/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas"],"datas":["24/05/2026"]},{"nome":"Enzo Previdelli","telefone":"44998613904","total_sessoes":2,"primeira_sessao":"25/01/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Barba / Face "],"datas":["24/05/2026","25/01/2026"]},{"nome":"Gisele Dos Santos Gasparetto","telefone":"44999405695","total_sessoes":3,"primeira_sessao":"21/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Virilha Completa"],"datas":["21/12/2025","23/02/2026","24/05/2026"]},{"nome":"Isabela Maluf","telefone":"44999164665","total_sessoes":4,"primeira_sessao":"26/04/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["24/05/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Isadora Fiaux","telefone":"","total_sessoes":5,"primeira_sessao":"25/01/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["22/02/2026","22/02/2026","24/05/2026","25/01/2026","25/01/2026"]},{"nome":"Izabela Lima Rossini","telefone":"44998485879","total_sessoes":9,"primeira_sessao":"21/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025","22/02/2026","22/02/2026","24/05/2026","24/05/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Jeferson Garcia Ferreira","telefone":"44984628437","total_sessoes":3,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Costas","Depilação - Peito"],"datas":["22/12/2025","24/05/2026","25/01/2026"]},{"nome":"Jessica Zambello","telefone":"44999465225","total_sessoes":8,"primeira_sessao":"25/01/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/02/2026","22/02/2026","22/03/2026","22/03/2026","24/05/2026","24/05/2026","25/01/2026","25/01/2026"]},{"nome":"Júlia Toledo","telefone":"44997109123","total_sessoes":9,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Perna Inteira","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["22/02/2026","22/02/2026","22/12/2025","22/12/2025","22/12/2025","24/05/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Kamila De Paula Marchetti","telefone":"44999996355","total_sessoes":10,"primeira_sessao":"21/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Barba / Face "],"datas":["21/12/2025","21/12/2025","22/03/2026","22/03/2026","23/02/2026","23/02/2026","24/05/2026","24/05/2026","26/04/2026","26/04/2026"]},{"nome":"Kerollyn Cavalini De Freitas","telefone":"44997556025","total_sessoes":3,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/12/2025","22/12/2025","24/05/2026"]},{"nome":"Laissa Vieira","telefone":"44999068555","total_sessoes":6,"primeira_sessao":"26/04/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["24/05/2026","24/05/2026","24/05/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Leila Viviane Freitas Scriptore","telefone":"4484172879","total_sessoes":4,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Meia Perna","Depilação - Virilha Parcial"],"datas":["22/03/2026","22/12/2025","24/05/2026","26/04/2026"]},{"nome":"Maria Eduarda Alves","telefone":"44999012367","total_sessoes":14,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Barba / Face ","Depilação - Virilha Parcial"],"datas":["22/02/2026","22/02/2026","22/02/2026","22/03/2026","22/03/2026","22/03/2026","22/12/2025","22/12/2025","22/12/2025","24/05/2026","24/05/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Nicole Guimarães Resina","telefone":"44999366889","total_sessoes":8,"primeira_sessao":"21/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Meia Perna"],"datas":["21/12/2025","21/12/2025","22/03/2026","22/03/2026","24/05/2026","24/05/2026","25/01/2026","25/01/2026"]},{"nome":"Rosemeire Da Silva Poltroniere","telefone":"","total_sessoes":2,"primeira_sessao":"24/05/2026","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["24/05/2026","24/05/2026"]},{"nome":"Sandra De Lima","telefone":"44998327679","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025","22/02/2026","22/02/2026","24/05/2026","24/05/2026"]},{"nome":"Vanessa Karina Ramos Coelho","telefone":"44997104338","total_sessoes":10,"primeira_sessao":"22/12/2025","ultima_sessao":"24/05/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["22/02/2026","22/02/2026","22/03/2026","22/03/2026","22/12/2025","22/12/2025","24/05/2026","24/05/2026","25/01/2026","26/04/2026"]},{"nome":"Jessica Rodrigues Santos Amadeu","telefone":"5544998254335","total_sessoes":4,"primeira_sessao":"21/05/2026","ultima_sessao":"21/05/2026","areas":["LASER + ILIB"],"datas":["21/05/2026","21/05/2026","21/05/2026","21/05/2026"]},{"nome":"Nathalia Eko","telefone":"44991698079","total_sessoes":4,"primeira_sessao":"18/05/2026","ultima_sessao":"18/05/2026","areas":["LASER PONTUAL"],"datas":["18/05/2026","18/05/2026","18/05/2026","18/05/2026"]},{"nome":"Ana Ravanelo","telefone":"42999961002","total_sessoes":3,"primeira_sessao":"13/05/2026","ultima_sessao":"13/05/2026","areas":["Depilação - Barba / Face ","Depilação - Meia Perna","Depilação - Virilha Parcial"],"datas":["13/05/2026","13/05/2026","13/05/2026"]},{"nome":"Aldair Vendramel Da Silva","telefone":"44991185146","total_sessoes":4,"primeira_sessao":"29/04/2026","ultima_sessao":"29/04/2026","areas":["LASER + ILIB"],"datas":["29/04/2026","29/04/2026","29/04/2026","29/04/2026"]},{"nome":"Camila Baise","telefone":"","total_sessoes":4,"primeira_sessao":"25/01/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["22/02/2026","22/02/2026","25/01/2026","26/04/2026"]},{"nome":"Eliana Gasparetto","telefone":"44999983829","total_sessoes":3,"primeira_sessao":"25/01/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["25/01/2026","26/04/2026","26/04/2026"]},{"nome":"Elisangela Grejanin Romanii","telefone":"","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Meia Perna"],"datas":["21/12/2025","21/12/2025","22/03/2026","22/03/2026","26/04/2026","26/04/2026"]},{"nome":"Estela Valéria Da Rocha","telefone":"44984335084","total_sessoes":6,"primeira_sessao":"22/12/2025","ultima_sessao":"26/04/2026","areas":["Depilação - Buço","Depilação - Virilha Completa"],"datas":["22/02/2026","22/03/2026","22/12/2025","22/12/2025","25/01/2026","26/04/2026"]},{"nome":"Fernanda Bueno","telefone":"44998685444","total_sessoes":11,"primeira_sessao":"21/12/2025","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Perna Inteira","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025","21/12/2025","21/12/2025","22/02/2026","22/02/2026","22/02/2026","22/02/2026","26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Géssyka Barbosa","telefone":"44997250802","total_sessoes":2,"primeira_sessao":"23/03/2026","ultima_sessao":"27/04/2026","areas":["Depilação - Barba / Face "],"datas":["23/03/2026","27/04/2026"]},{"nome":"Josivania Silva Gois De Souza","telefone":"44984018777","total_sessoes":3,"primeira_sessao":"26/04/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["26/04/2026","26/04/2026","26/04/2026"]},{"nome":"Kauana Siqueira","telefone":"44998921812","total_sessoes":2,"primeira_sessao":"27/04/2026","ultima_sessao":"27/04/2026","areas":["Depilação - Axilas","Depilação - Buço"],"datas":["27/04/2026","27/04/2026"]},{"nome":"Lidiane Ramalho","telefone":"44997266315","total_sessoes":3,"primeira_sessao":"22/02/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas"],"datas":["22/02/2026","22/03/2026","26/04/2026"]},{"nome":"Pablo","telefone":"","total_sessoes":3,"primeira_sessao":"25/01/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Barba / Face "],"datas":["22/03/2026","25/01/2026","26/04/2026"]},{"nome":"Regilene Belisário Da Silva","telefone":"44988065752","total_sessoes":3,"primeira_sessao":"22/03/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/03/2026","22/03/2026","26/04/2026"]},{"nome":"Stefany Aparecida Da Silva Cavagnino","telefone":"44991696738","total_sessoes":6,"primeira_sessao":"25/01/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["22/02/2026","22/02/2026","25/01/2026","25/01/2026","26/04/2026","26/04/2026"]},{"nome":"Vanessa Tessaroto.","telefone":"","total_sessoes":1,"primeira_sessao":"26/04/2026","ultima_sessao":"26/04/2026","areas":["Depilação - Barba / Face "],"datas":["26/04/2026"]},{"nome":"Brenda Furtado","telefone":"44998142678","total_sessoes":1,"primeira_sessao":"23/03/2026","ultima_sessao":"23/03/2026","areas":["Depilação - Axilas"],"datas":["23/03/2026"]},{"nome":"Bruna Vignoto","telefone":"","total_sessoes":5,"primeira_sessao":"22/12/2025","ultima_sessao":"23/03/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["22/12/2025","23/03/2026","26/01/2026","26/01/2026","26/01/2026"]},{"nome":"Cassiana Toledo Barros Siva","telefone":"","total_sessoes":3,"primeira_sessao":"22/12/2025","ultima_sessao":"23/03/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Perna Inteira"],"datas":["22/12/2025","23/03/2026","23/03/2026"]},{"nome":"Izabel Benante Borges","telefone":"44998544591","total_sessoes":1,"primeira_sessao":"23/03/2026","ultima_sessao":"23/03/2026","areas":["Depilação - Virilha Parcial"],"datas":["23/03/2026"]},{"nome":"Any Moreira Biudes","telefone":"","total_sessoes":3,"primeira_sessao":"23/12/2025","ultima_sessao":"22/03/2026","areas":["Depilação - Virilha Parcial"],"datas":["22/02/2026","22/03/2026","23/12/2025"]},{"nome":"Isabela Chinaglia","telefone":"44999197419","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"22/03/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025","22/03/2026","22/03/2026"]},{"nome":"Larissa Froehner","telefone":"44991274557","total_sessoes":6,"primeira_sessao":"23/12/2025","ultima_sessao":"22/03/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Perna Inteira","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["22/03/2026","22/03/2026","22/03/2026","23/12/2025","23/12/2025","23/12/2025"]},{"nome":"Vilma Aparecida Dos Santos Ribeiro","telefone":"44988269880","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"22/03/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["21/12/2025","21/12/2025","22/03/2026","22/03/2026"]},{"nome":"Ana Lucia Ravanello","telefone":"42999961002","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"23/02/2026","areas":["Depilação - Axilas","Depilação - Barba / Face ","Depilação - Meia Perna"],"datas":["21/12/2025","21/12/2025","21/12/2025","23/02/2026","23/02/2026","23/02/2026"]},{"nome":"Emillayna Oliveira","telefone":"4499842966","total_sessoes":3,"primeira_sessao":"22/02/2026","ultima_sessao":"22/02/2026","areas":["Depilação - Axilas","Depilação - Perna Inteira","Depilação - Virilha Completa"],"datas":["22/02/2026","22/02/2026","22/02/2026"]},{"nome":"Gilian Grisolia","telefone":"44998133918","total_sessoes":3,"primeira_sessao":"21/12/2025","ultima_sessao":"22/02/2026","areas":["Depilação - Peito","Depilação - Virilha Completa"],"datas":["21/12/2025","22/02/2026","22/02/2026"]},{"nome":"Giordana Batista Angonese","telefone":"45998254402","total_sessoes":2,"primeira_sessao":"21/12/2025","ultima_sessao":"23/02/2026","areas":["Depilação - Virilha Completa"],"datas":["21/12/2025","23/02/2026"]},{"nome":"Julia Novaes","telefone":"","total_sessoes":4,"primeira_sessao":"25/01/2026","ultima_sessao":"22/02/2026","areas":["Depilação - Axilas","Depilação - Perna Inteira"],"datas":["22/02/2026","22/02/2026","25/01/2026","25/01/2026"]},{"nome":"Kelly Paulis","telefone":"44999613737","total_sessoes":2,"primeira_sessao":"22/12/2025","ultima_sessao":"22/02/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/02/2026","22/12/2025"]},{"nome":"Maria Eduarda Beraldo","telefone":"44988187777","total_sessoes":2,"primeira_sessao":"25/01/2026","ultima_sessao":"22/02/2026","areas":["Depilação - Axilas"],"datas":["22/02/2026","25/01/2026"]},{"nome":"Nathalia Avelaneda","telefone":"44984217299","total_sessoes":4,"primeira_sessao":"20/10/2025","ultima_sessao":"22/02/2026","areas":["Depilação - Barba / Face ","Depilação - Virilha Completa","Laser Pisom"],"datas":["20/10/2025","21/12/2025","22/02/2026","25/01/2026"]},{"nome":"Rhaissa Jimenez","telefone":"11989657395","total_sessoes":5,"primeira_sessao":"21/12/2025","ultima_sessao":"23/02/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["21/12/2025","21/12/2025","23/02/2026","23/02/2026","23/02/2026"]},{"nome":"Vitória Gabriely","telefone":"44999183047","total_sessoes":2,"primeira_sessao":"22/02/2026","ultima_sessao":"22/02/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["22/02/2026","22/02/2026"]},{"nome":"Brenda","telefone":"44991219230","total_sessoes":2,"primeira_sessao":"20/10/2025","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas","Laser Pisom"],"datas":["20/10/2025","25/01/2026"]},{"nome":"Camile Silva Esteves","telefone":"44999063593","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025","25/01/2026","25/01/2026"]},{"nome":"Eloise Cordeiro","telefone":"44999502296","total_sessoes":6,"primeira_sessao":"21/12/2025","ultima_sessao":"26/01/2026","areas":["Depilação - Axilas","Depilação - Meia Perna","Depilação - Virilha Completa"],"datas":["21/12/2025","21/12/2025","21/12/2025","26/01/2026","26/01/2026","26/01/2026"]},{"nome":"Gessyka","telefone":"44999380338","total_sessoes":1,"primeira_sessao":"25/01/2026","ultima_sessao":"25/01/2026","areas":["Depilação - Barba / Face "],"datas":["25/01/2026"]},{"nome":"Jocilene Silva De Gois Leandro","telefone":"44984548380","total_sessoes":3,"primeira_sessao":"25/01/2026","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas","Depilação - Buço","Depilação - Virilha Completa"],"datas":["25/01/2026","25/01/2026","25/01/2026"]},{"nome":"Jéssica Lopes","telefone":"44984549878","total_sessoes":1,"primeira_sessao":"26/01/2026","ultima_sessao":"26/01/2026","areas":["Depilação - Axilas"],"datas":["26/01/2026"]},{"nome":"Livia Coelho Faneco","telefone":"44997104338","total_sessoes":2,"primeira_sessao":"22/12/2025","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas"],"datas":["22/12/2025","25/01/2026"]},{"nome":"Marcia De Oliveira Souza","telefone":"44984244154","total_sessoes":4,"primeira_sessao":"21/12/2025","ultima_sessao":"26/01/2026","areas":["Depilação - Axilas","Depilação - Virilha Completa"],"datas":["21/12/2025","21/12/2025","26/01/2026","26/01/2026"]},{"nome":"Mariana Silva Martimiano","telefone":"44998858216","total_sessoes":1,"primeira_sessao":"25/01/2026","ultima_sessao":"25/01/2026","areas":["Depilação - Virilha Parcial"],"datas":["25/01/2026"]},{"nome":"Rebeca Rezende","telefone":"44991390884","total_sessoes":4,"primeira_sessao":"23/12/2025","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["23/12/2025","23/12/2025","25/01/2026","25/01/2026"]},{"nome":"Taimara Foutran","telefone":"","total_sessoes":1,"primeira_sessao":"25/01/2026","ultima_sessao":"25/01/2026","areas":["Depilação - Virilha Completa"],"datas":["25/01/2026"]},{"nome":"Valentina Markert Foutran","telefone":"44991494092","total_sessoes":1,"primeira_sessao":"25/01/2026","ultima_sessao":"25/01/2026","areas":["Depilação - Axilas"],"datas":["25/01/2026"]},{"nome":"Vera Gomes","telefone":"44984535003","total_sessoes":2,"primeira_sessao":"26/01/2026","ultima_sessao":"26/01/2026","areas":["Depilação - Perna Inteira","Depilação - Virilha Completa"],"datas":["26/01/2026","26/01/2026"]},{"nome":"Sérgio","telefone":"","total_sessoes":3,"primeira_sessao":"23/12/2025","ultima_sessao":"23/12/2025","areas":["Depilação - Axilas","Depilação - Costas","Depilação - Peito"],"datas":["23/12/2025","23/12/2025","23/12/2025"]},{"nome":"Alicia Giovana Rocha","telefone":"44998164553","total_sessoes":2,"primeira_sessao":"21/12/2025","ultima_sessao":"21/12/2025","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025"]},{"nome":"Laila Da Silva Rios","telefone":"44998055585","total_sessoes":2,"primeira_sessao":"21/12/2025","ultima_sessao":"21/12/2025","areas":["Depilação - Axilas","Depilação - Virilha Parcial"],"datas":["21/12/2025","21/12/2025"]},{"nome":"Ludimila","telefone":"4498918436","total_sessoes":2,"primeira_sessao":"23/11/2025","ultima_sessao":"23/11/2025","areas":["Depilação - Axilas","Depilação - Barba / Face "],"datas":["23/11/2025","23/11/2025"]},{"nome":"Nicole","telefone":"","total_sessoes":2,"primeira_sessao":"23/11/2025","ultima_sessao":"23/11/2025","areas":["Depilação - Axilas","Depilação - Meia Perna"],"datas":["23/11/2025","23/11/2025"]},{"nome":"Giselle Cristiane Mateus Guimarães","telefone":"41999891242","total_sessoes":2,"primeira_sessao":"13/11/2025","ultima_sessao":"13/11/2025","areas":["Laser Pisom"],"datas":["13/11/2025","13/11/2025"]},{"nome":"Ivete Ribeiro Machado","telefone":"44999847028","total_sessoes":2,"primeira_sessao":"12/11/2025","ultima_sessao":"12/11/2025","areas":["Laser Pisom"],"datas":["12/11/2025","12/11/2025"]},{"nome":"Larissa Barroso Machado Ulian","telefone":"44998501110","total_sessoes":3,"primeira_sessao":"25/09/2025","ultima_sessao":"12/11/2025","areas":["Laser Pisom"],"datas":["12/11/2025","12/11/2025","25/09/2025"]},{"nome":"Célis Aparecida Milani","telefone":"44984052880","total_sessoes":3,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Combo Laser Pisom (3 Sessões)"],"datas":["20/10/2025","20/10/2025","20/10/2025"]},{"nome":"Lorena Nunes Cordeiro","telefone":"44988014903","total_sessoes":3,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Combo Laser Pisom (3 Sessões)"],"datas":["20/10/2025","20/10/2025","20/10/2025"]},{"nome":"Marília Nogara","telefone":"44933004179","total_sessoes":3,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Combo Laser Pisom (3 Sessões)"],"datas":["20/10/2025","20/10/2025","20/10/2025"]},{"nome":"Thais Iltchenco","telefone":"44984383649","total_sessoes":3,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Combo Laser Pisom (3 Sessões)"],"datas":["20/10/2025","20/10/2025","20/10/2025"]},{"nome":"Veronica Venâncio Piai","telefone":"44988364800","total_sessoes":3,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Combo Laser Pisom (3 Sessões)"],"datas":["20/10/2025","20/10/2025","20/10/2025"]},{"nome":"Ana Clara Barradas Bassi","telefone":"44999078685","total_sessoes":1,"primeira_sessao":"21/12/2025","ultima_sessao":"21/12/2025","areas":["Depilação - Axilas"],"datas":["21/12/2025"]},{"nome":"Taynara Medeiros","telefone":"44991629605","total_sessoes":1,"primeira_sessao":"22/12/2025","ultima_sessao":"22/12/2025","areas":["Depilação - Virilha Completa"],"datas":["22/12/2025"]},{"nome":"Graciele Maziero","telefone":"44991443006","total_sessoes":1,"primeira_sessao":"11/12/2025","ultima_sessao":"11/12/2025","areas":["Laser Pisom"],"datas":["11/12/2025"]},{"nome":"Ana Leila Marques","telefone":"44999919961","total_sessoes":1,"primeira_sessao":"01/12/2025","ultima_sessao":"01/12/2025","areas":["Laser Pisom"],"datas":["01/12/2025"]},{"nome":"Silmara Souza Do Nascimento","telefone":"","total_sessoes":1,"primeira_sessao":"12/11/2025","ultima_sessao":"12/11/2025","areas":["Laser Pisom"],"datas":["12/11/2025"]},{"nome":"Carol","telefone":"44999195932","total_sessoes":1,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Laser Pisom"],"datas":["20/10/2025"]},{"nome":"Gabriela Longui Cardoso Gimenes","telefone":"44991165895","total_sessoes":1,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Laser Pisom"],"datas":["20/10/2025"]},{"nome":"Gislaine Melo","telefone":"44999251239","total_sessoes":1,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Laser Pisom"],"datas":["20/10/2025"]},{"nome":"Márcia Gomes","telefone":"","total_sessoes":1,"primeira_sessao":"20/10/2025","ultima_sessao":"20/10/2025","areas":["Laser Pisom"],"datas":["20/10/2025"]},{"nome":"Fabiana Patricia Fernandes De Sena","telefone":"44999455874","total_sessoes":1,"primeira_sessao":"07/08/2025","ultima_sessao":"07/08/2025","areas":["Laser Pisom"],"datas":["07/08/2025"]}];
+
+const LABELS_P = {
+  agendar_agora: '⚡ Agendar agora',
+  agendada:      '✓ Agendada',
+  em_risco:      '⚠ Em risco',
+  reativar:      '↩ Reativar',
+  inativa:       'Inativa',
+  monitorar:     'Monitorar',
+};
+const PORDER = {agendar_agora:0,agendada:1,em_risco:2,reativar:3,inativa:4,monitorar:5};
+
+// ── STATE ──
+let BASE       = [];   // all patient records (accumulated)
+let CONFIRMED  = {};   // { nome: 'YYYY-MM' } — agendada este mês
+let activeFilter = 'all';
+let searchTerm   = '';
+let sortKey      = 'prioridade';
+let filtered     = [];
+let panelNome    = null;
+let modalCb      = null;
+
+// ── STORAGE ──
+function saveBase()      { try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(BASE)); }catch(e){} }
+function saveConfirmed() { try{ localStorage.setItem(CONFIRMED_KEY, JSON.stringify(CONFIRMED)); }catch(e){} }
+
+function loadAll() {
+  try {
+    const b = localStorage.getItem(STORAGE_KEY);
+    BASE = b ? JSON.parse(b) : JSON.parse(JSON.stringify(SEED));
+  } catch(e) { BASE = JSON.parse(JSON.stringify(SEED)); }
+
+  try {
+    const c = localStorage.getItem(CONFIRMED_KEY);
+    CONFIRMED = c ? JSON.parse(c) : {};
+  } catch(e) { CONFIRMED = {}; }
+
+  const imp = localStorage.getItem(IMPORT_KEY);
+  document.getElementById('info-import').textContent = imp || 'Base inicial';
+}
+
+// ── DATE ──
+function todayStr() {
+  return document.getElementById('today-date').value || new Date().toISOString().slice(0,10);
+}
+function todayTs() {
+  return new Date(todayStr());
+}
+function currentMonth() {
+  return todayStr().slice(0,7); // YYYY-MM
+}
+function parseDate(str) {
+  if(!str) return null;
+  const [d,m,y] = str.split('/');
+  return new Date(`${y}-${m}-${d}`);
+}
+function addDays(str, days) {
+  const d = parseDate(str);
+  if(!d) return '';
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString('pt-BR');
+}
+function diffDays(dateStr) {
+  const d = parseDate(dateStr);
+  if(!d) return null;
+  const hoje = todayTs();
+  return Math.round((d - hoje) / 86400000);
+}
+
+// ── COMPUTE PRIORITY ──
+function computePriority(rec) {
+  // If confirmed this month, always agendada
+  if(CONFIRMED[rec.nome] === currentMonth()) return 'agendada';
+
+  const ultima = parseDate(rec.ultima_sessao);
+  if(!ultima) return 'monitorar';
+
+  const hoje = todayTs();
+  const meses = (hoje - ultima) / (1000*60*60*24*30);
+  const prox  = addDays(rec.ultima_sessao, INTERVAL);
+  const dias  = diffDays(prox);
+
+  if(dias !== null && dias < 0 && meses <= 3)  return 'agendar_agora';
+  if(dias !== null && dias >= 0 && dias <= 7)   return 'agendar_agora';
+  if(meses > 3 && meses <= 6)                   return 'em_risco';
+  if(meses > 6 && rec.total_sessoes >= 2)       return 'reativar';
+  if(meses > 6)                                 return 'inativa';
+  return 'monitorar';
+}
+
+function enrichRecord(rec) {
+  const prox  = addDays(rec.ultima_sessao, INTERVAL);
+  const dias  = diffDays(prox);
+  const ultima = parseDate(rec.ultima_sessao);
+  const hoje  = todayTs();
+  const meses = ultima ? (hoje - ultima)/(1000*60*60*24*30) : 999;
+  return {
+    ...rec,
+    proxima_estimada: prox,
+    dias_para_proxima: dias,
+    meses_desde_ultima: Math.round(meses*10)/10,
+    prioridade: computePriority(rec),
+  };
+}
+
+// ── MERGE / ACCUMULATE ──
+function mergeBase(newRecords) {
+  // Index existing by nome
+  const idx = {};
+  BASE.forEach((r,i) => idx[r.nome] = i);
+
+  newRecords.forEach(nr => {
+    if(idx[nr.nome] !== undefined) {
+      const existing = BASE[idx[nr.nome]];
+      // Merge datas — union, sorted
+      const allDatas = [...new Set([...existing.datas, ...nr.datas])].sort((a,b) => {
+        return parseDate(a) - parseDate(b);
+      });
+      const allAreas = [...new Set([...existing.areas, ...nr.areas])].sort();
+      BASE[idx[nr.nome]] = {
+        ...existing,
+        telefone: nr.telefone || existing.telefone,
+        total_sessoes: allDatas.length,
+        ultima_sessao: allDatas[allDatas.length-1],
+        primeira_sessao: allDatas[0],
+        datas: allDatas,
+        areas: allAreas,
+      };
+    } else {
+      BASE.push(nr);
+      idx[nr.nome] = BASE.length - 1;
+    }
+  });
+
+  saveBase();
+}
+
+// ── PARSE EXCEL ──
+function parseExcel(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb   = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {raw:false});
+
+      if(!rows.length) { showUploadStatus('Planilha vazia ou formato não reconhecido.', false); return; }
+
+      // Detect laser rows
+      const laserRows = rows.filter(r => {
+        const proc = String(r['Procedimento']||r['procedimento']||'').toLowerCase();
+        return proc.includes('laser') || proc.includes('depila');
+      });
+
+      if(!laserRows.length) { showUploadStatus('Nenhum procedimento de laser encontrado na planilha.', false); return; }
+
+      // Build normalized records grouped by patient
+      const byPac = {};
+      laserRows.forEach(r => {
+        const nome = String(r['Paciente']||r['paciente']||'').trim()
+          .split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+        if(!nome) return;
+
+        const rawTel = String(r['Telefone']||r['telefone']||'').replace(/\D/g,'');
+        const rawData = r['Data']||r['data']||'';
+        let dataFmt = '';
+        if(rawData) {
+          // Handle date string or Date object
+          let d = rawData instanceof Date ? rawData : new Date(rawData);
+          if(isNaN(d.getTime())) {
+            // Try dd/mm/yyyy
+            const parts = String(rawData).split('/');
+            if(parts.length===3) { d = new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`); }
+          }
+          if(!isNaN(d.getTime())) {
+            dataFmt = d.toLocaleDateString('pt-BR');
+          }
+        }
+        const proc = String(r['Procedimento']||r['procedimento']||'');
+
+        if(!byPac[nome]) byPac[nome] = {nome, telefone:'', datas:[], areas:[]};
+        if(rawTel && rawTel !== '@') byPac[nome].telefone = rawTel;
+        if(dataFmt) byPac[nome].datas.push(dataFmt);
+        if(proc && !byPac[nome].areas.includes(proc)) byPac[nome].areas.push(proc);
+      });
+
+      const newRecords = Object.values(byPac).map(p => {
+        const sorted = [...new Set(p.datas)].sort((a,b)=>parseDate(a)-parseDate(b));
+        return {
+          nome: p.nome,
+          telefone: p.telefone,
+          total_sessoes: sorted.length,
+          primeira_sessao: sorted[0]||'',
+          ultima_sessao: sorted[sorted.length-1]||'',
+          datas: sorted,
+          areas: p.areas.sort(),
+        };
+      });
+
+      mergeBase(newRecords);
+      const now = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      localStorage.setItem(IMPORT_KEY, now);
+      document.getElementById('info-import').textContent = now;
+
+      showUploadStatus(`✓ ${newRecords.length} pacientes de laser importadas. Base acumulada: ${BASE.length} pacientes.`, true);
+      refreshAll();
+    } catch(err) {
+      showUploadStatus('Erro ao processar planilha: ' + err.message, false);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showUploadStatus(msg, ok) {
+  const el = document.getElementById('upload-status');
+  el.textContent = msg;
+  el.className = 'upload-status ' + (ok ? 'ok' : 'err');
+  setTimeout(()=>{ el.className='upload-status'; }, 6000);
+}
+
+// ── CONFIRM / UNDO ──
+function confirmAgendada(nome, fromPanel=false) {
+  CONFIRMED[nome] = currentMonth();
+  saveConfirmed();
+  if(fromPanel) closePanel();
+  refreshAll();
+}
+
+function undoAgendada(nome, fromPanel=false) {
+  delete CONFIRMED[nome];
+  saveConfirmed();
+  if(fromPanel) closePanel();
+  refreshAll();
+}
+
+// ── REFRESH ALL ──
+function refreshAll() {
+  updateStorageInfo();
+  updateKPIs();
+  apply();
+}
+
+function updateStorageInfo() {
+  const agendadasMes = Object.values(CONFIRMED).filter(m=>m===currentMonth()).length;
+  document.getElementById('info-total').textContent = BASE.length;
+  document.getElementById('info-agendadas').textContent = agendadasMes;
+}
+
+function updateKPIs() {
+  const enriched = BASE.map(enrichRecord);
+  document.getElementById('k0').textContent = enriched.length;
+  document.getElementById('k1').textContent = enriched.filter(r=>r.prioridade==='agendar_agora').length;
+  document.getElementById('k2').textContent = enriched.filter(r=>r.prioridade==='agendada').length;
+  document.getElementById('k3').textContent = enriched.filter(r=>r.prioridade==='em_risco').length;
+  document.getElementById('k4').textContent = enriched.filter(r=>r.prioridade==='reativar').length;
+  document.getElementById('k5').textContent = enriched.filter(r=>r.prioridade==='monitorar').length;
+}
+
+// ── FILTER + SORT ──
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.fp').forEach(p=>p.classList.toggle('active', p.dataset.p===f));
+  apply();
+}
+
+function apply() {
+  let r = BASE.map(enrichRecord);
+  if(activeFilter !== 'all') r = r.filter(x=>x.prioridade===activeFilter);
+  if(searchTerm) { const t=searchTerm.toLowerCase(); r=r.filter(x=>x.nome.toLowerCase().includes(t)||x.telefone.includes(t)); }
+
+  r = [...r].sort((a,b)=>{
+    switch(sortKey){
+      case 'prioridade':   return (PORDER[a.prioridade]??9)-(PORDER[b.prioridade]??9)||a.meses_desde_ultima-b.meses_desde_ultima;
+      case 'proxima':      return (a.dias_para_proxima??999)-(b.dias_para_proxima??999);
+      case 'ultima_asc':   return a.meses_desde_ultima-b.meses_desde_ultima;
+      case 'ultima_desc':  return b.meses_desde_ultima-a.meses_desde_ultima;
+      case 'sessoes_desc': return b.total_sessoes-a.total_sessoes;
+      case 'nome':         return a.nome.localeCompare(b.nome,'pt-BR');
+      default: return 0;
+    }
+  });
+
+  filtered = r;
+  document.getElementById('rinfo').textContent = r.length + ' pacientes';
+  render();
+}
+
+// ── RENDER ──
+function diasChip(dias) {
+  if(dias===null||dias===undefined) return '';
+  if(dias<0)   return `<span class="dc passou">${Math.abs(dias)}d atrasada</span>`;
+  if(dias<=7)  return `<span class="dc urgente">em ${dias}d</span>`;
+  if(dias<=21) return `<span class="dc breve">em ${dias}d</span>`;
+  return `<span class="dc longe">em ${dias}d</span>`;
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  if(!filtered.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  tbody.innerHTML = filtered.map((r,i) => {
+    const total = Math.min(r.total_sessoes,15);
+    const boxes = Array.from({length:total},(_,j)=>`<div class="sbox ${j===total-1?'last':'done'}"></div>`).join('');
+    const areas = r.areas.map(a=>a.replace('Depilação - ','')).join(' · ');
+    const tel   = r.telefone || '<span class="no-tel">sem tel</span>';
+    const isAgendada = r.prioridade === 'agendada';
+
+    const actionBtn = isAgendada
+      ? `<button class="undo-btn" onclick="event.stopPropagation();undoAgendada('${r.nome.replace(/'/g,"\'")}')">↩ Desfazer</button>`
+      : r.prioridade === 'agendar_agora' || r.prioridade === 'em_risco'
+        ? `<button class="confirm-btn" onclick="event.stopPropagation();confirmAgendada('${r.nome.replace(/'/g,"\'")}')">✓ Agendada</button>`
+        : '';
+
+    return `<tr class="${isAgendada?'agendada-row':''}" onclick="openPanel(${i})">
+      <td><span class="pbadge ${r.prioridade}"><span class="dot"></span>${LABELS_P[r.prioridade]||r.prioridade}</span></td>
+      <td class="nm">${r.nome}</td>
+      <td style="font-size:11px">${tel}</td>
+      <td><div class="sess-bar">${boxes}</div><div style="font-size:9px;color:var(--white-faint)">${r.total_sessoes} sessão${r.total_sessoes>1?'ões':''}</div></td>
+      <td><div style="font-size:12px">${r.ultima_sessao}</div><div style="font-size:9px;color:var(--white-faint);margin-top:2px">${r.meses_desde_ultima.toFixed(1)}m atrás</div></td>
+      <td><div style="font-size:11px;margin-bottom:3px">${r.proxima_estimada}</div>${diasChip(r.dias_para_proxima)}</td>
+      <td>${actionBtn}</td>
+      <td style="font-size:10px;color:var(--white-faint);max-width:160px">${areas}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── PANEL ──
+function openPanel(idx) {
+  const r = filtered[idx];
+  panelNome = r.nome;
+  document.getElementById('pname').textContent = r.nome;
+  document.getElementById('psub').innerHTML =
+    `<span class="pbadge ${r.prioridade}"><span class="dot"></span>${LABELS_P[r.prioridade]||r.prioridade}</span>` +
+    (r.telefone ? `<span style="font-size:11px;color:var(--white-faint)">${r.telefone}</span>` : '<span style="color:var(--red);font-size:11px">Sem telefone</span>');
+
+  // Alerta
+  const d = r.dias_para_proxima;
+  let al = '';
+  if(r.prioridade==='agendada'){
+    al = `<div class="alerta g"><strong>✓ Agendada este mês.</strong> Sessão confirmada em ${currentMonth().split('-').reverse().join('/')}. Clique em "Desfazer" se precisar corrigir.</div>`;
+  } else if(r.prioridade==='agendar_agora'){
+    const txt = d < 0
+      ? `Próxima sessão passou há <strong>${Math.abs(d)} dias</strong> (era ${r.proxima_estimada}). Contatar para agendar o quanto antes.`
+      : `Próxima sessão em <strong>${d} dias</strong> — ${r.proxima_estimada}. Hora de entrar em contato.`;
+    al = `<div class="alerta a">${txt}</div>`;
+  } else if(r.prioridade==='em_risco'){
+    al = `<div class="alerta r"><strong>${r.meses_desde_ultima.toFixed(1)} meses sem sessão.</strong> Risco de abandono do tratamento. Contato de reativação recomendado.</div>`;
+  } else if(r.prioridade==='reativar'){
+    al = `<div class="alerta p"><strong>${r.total_sessoes} sessões no histórico, ${r.meses_desde_ultima.toFixed(1)} meses sem vir.</strong> Boa candidata para reativação com mensagem personalizada.</div>`;
+  }
+  document.getElementById('palerta').innerHTML = al;
+
+  document.getElementById('pstats').innerHTML = `
+    <div class="ps"><div class="psval">${r.total_sessoes}</div><div class="pslabel">Sessões</div></div>
+    <div class="ps"><div class="psval">28d</div><div class="pslabel">Intervalo</div></div>
+    <div class="ps"><div class="psval">${r.meses_desde_ultima.toFixed(1)}m</div><div class="pslabel">Desde última</div></div>
+    <div class="ps"><div class="psval">${r.primeira_sessao}</div><div class="pslabel">1ª sessão</div></div>
+    <div class="ps"><div class="psval">${r.ultima_sessao}</div><div class="pslabel">Última sessão</div></div>
+    <div class="ps"><div class="psval">${r.proxima_estimada}</div><div class="pslabel">Próxima est.</div></div>`;
+
+  // Actions
+  const isAgendada = r.prioridade === 'agendada';
+  document.getElementById('panel-actions').innerHTML = isAgendada
+    ? `<button class="panel-undo" onclick="undoAgendada('${r.nome.replace(/'/g,"\'")}',true)">↩ Desfazer agendamento</button>`
+    : `<button class="panel-confirm" onclick="confirmAgendada('${r.nome.replace(/'/g,"\'")}',true)">✓ Confirmar agendada este mês</button>`;
+
+  // Timeline
+  document.getElementById('phist').innerHTML = [...r.datas].reverse().map((d,i,arr)=>
+    `<div class="titem"><div class="tnum">Sessão ${arr.length-i}</div><div class="tdate">${d}</div></div>`
+  ).join('');
+
+  document.getElementById('pareas').innerHTML = r.areas.map(a=>`<span class="area-tag">${a}</span>`).join('');
+
+  const wa = document.getElementById('pwa');
+  if(r.telefone){ const n=r.telefone.startsWith('55')?r.telefone:'55'+r.telefone; wa.href='https://wa.me/'+n; wa.style.display='flex'; }
+  else wa.style.display='none';
+
+  document.getElementById('ov').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closePanel(){ document.getElementById('ov').classList.remove('open'); document.body.style.overflow=''; panelNome=null; }
+
+// ── MODAL ──
+function showModal(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  modalCb = cb;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); modalCb=null; }
+document.getElementById('modal-ok').addEventListener('click', ()=>{ if(modalCb) modalCb(); closeModal(); });
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+
+function confirmClearData(){
+  showModal(
+    'Limpar base de dados',
+    'Isso vai <strong>apagar todos os registros</strong> acumulados e as confirmações de agendamento. A base voltará ao estado inicial.<br><br>Esta ação não pode ser desfeita.',
+    ()=>{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(CONFIRMED_KEY); localStorage.removeItem(IMPORT_KEY); BASE=JSON.parse(JSON.stringify(SEED)); CONFIRMED={}; refreshAll(); document.getElementById('info-import').textContent='Base inicial'; }
+  );
+}
+
+// ── EVENTS ──
+document.querySelectorAll('.fp').forEach(p=>p.addEventListener('click',()=>setFilter(p.dataset.p)));
+document.getElementById('search').addEventListener('input', e=>{ searchTerm=e.target.value.trim(); apply(); });
+document.getElementById('sort').addEventListener('change', e=>{ sortKey=e.target.value; apply(); });
+document.getElementById('today-date').addEventListener('change', ()=>refreshAll());
+document.getElementById('file-input').addEventListener('change', e=>{ if(e.target.files[0]) parseExcel(e.target.files[0]); e.target.value=''; });
+document.getElementById('pclose').addEventListener('click', closePanel);
+document.getElementById('ov').addEventListener('click', e=>{ if(e.target===document.getElementById('ov')) closePanel(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closePanel(); closeModal(); }});
+
+// ── INIT ──
+// Set today's date
+const now = new Date();
+document.getElementById('today-date').value = now.toISOString().slice(0,10);
+
+loadAll();
+refreshAll();
+</script>
+</body>
+</html>
