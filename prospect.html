@@ -127,9 +127,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_PROSPECTS = 'controleprosp:prospects:v1';
-const STORAGE_LOGS = 'controleprosp:logs:v1';
-const STORAGE_CONFIG = 'controleprosp:config:v1';
+// Cole aqui a URL do seu Google Apps Script (termina em /exec)
+const SCRIPT_URL = https://script.google.com/macros/s/AKfycbzG9q0AZP-6dsPI4N5-4Uydat82fzNQAJeR3XvpWXBEUzzVCuVknK7mvzDUNgWlBwNV/exec;
 
 const DEFAULT_PROSPECTS = JSON.parse(`[{"empresa": "RIZZIERI FORNERIA", "segmento": "PIZZARIAS", "endereco": "R. Coronel Luiz José dos Santos, 1839", "bairro": "Boqueirão", "telefone": "41 - 3092-2828", "comprador": "João", "id": "p1", "statusOriginal": "Em contato"}, {"empresa": "PIZZA PLANET", "segmento": "PIZZARIAS", "endereco": "R. Coronel Luiz José dos Santos, 2701", "bairro": "Boqueirão", "telefone": "41 - 3015-0505", "comprador": "Dalton", "id": "p2", "statusOriginal": "Após as 14:00"}, {"empresa": "CARMO PIZZARIA", "segmento": "PIZZARIAS", "endereco": "R. Italino Peruffo, 135", "bairro": "Boqueirão", "telefone": "41 - 99998-3570", "comprador": "Claudemir", "id": "p3", "statusOriginal": "Após as 10:00"}, {"empresa": "BOCA DE FORNO", "segmento": "PIZZARIAS", "endereco": "R. Anne Frank, 5888", "bairro": "Boqueirão", "telefone": "41 - 3286-0113", "comprador": "Gabriel", "id": "p4", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA NONNA TITA", "segmento": "PIZZARIAS", "endereco": "R. João Soares Barcelos, 2115", "bairro": "Boqueirão", "telefone": "41 - 98511-3535", "comprador": "Henrique", "id": "p5", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA DOM RAFA", "segmento": "PIZZARIAS", "endereco": "R. Marte, 755", "bairro": "Sitio Cercado", "telefone": "41 - 3349-7210", "comprador": "Barbara", "id": "p6", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DNA DA PIZZA", "segmento": "PIZZARIAS", "endereco": "R. Tjucas do Sul, 1777", "bairro": "Sitio Cercado", "telefone": "41 - 99245-4288", "comprador": "Kelly", "id": "p7", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DOM NATO", "segmento": "PIZZARIAS", "endereco": "R. Lupionópolis, 1153", "bairro": "Sitio Cercado", "telefone": "41 - 3227-5171", "comprador": "Ruy", "id": "p8", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA BEVILACQUA", "segmento": "PIZZARIAS", "endereco": "R. Lupionópolis, 550", "bairro": "Sitio Cercado", "telefone": "41 - 99159-2790", "comprador": "Douglas", "id": "p9", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DOM DA MASSA", "segmento": "PIZZARIAS", "endereco": "R. Ourizona, 2161", "bairro": "Sitio Cercado", "telefone": "41 - 3227-0681", "comprador": "Sabrina", "id": "p10", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA O' SKINÃO", "segmento": "PIZZARIAS", "endereco": "R. Mandirituba, 654", "bairro": "Sitio Cercado", "telefone": "41 - 98465-8279", "comprador": "Nair", "id": "p11", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "TUBA PIZZA", "segmento": "PIZZARIAS", "endereco": "R. Tijucas do Sul, 861", "bairro": "Sitio Cercado", "telefone": "41 - 3265-2649", "comprador": "Juliano", "id": "p12", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "BRUNELLAS PIZZARIA", "segmento": "PIZZARIAS", "endereco": "R. Cruzeiro do Sul, 618", "bairro": "Sitio Cercado", "telefone": "41 - 3114-5488", "comprador": "Mauricio", "id": "p13", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "NIL'S PIZZARIA", "segmento": "PIZZARIAS", "endereco": "R. São José dos Pinhais, 2000", "bairro": "Sitio Cercado", "telefone": "41 - 99985-4745", "comprador": "Fernando", "id": "p14", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA LA'ITALIA", "segmento": "PIZZARIAS", "endereco": "R. Eng. Benedito Mario da Silva", "bairro": "Cajuru", "telefone": "41 - 4042-1234", "comprador": "Orlis", "id": "p15", "statusOriginal": "Ligar 21/07 - após as 14:00"}, {"empresa": "PIZZARIA RAIUZ", "segmento": "PIZZARIAS", "endereco": "R. Antonio Moreira Lopes, 1553", "bairro": "Cajuru", "telefone": "41 - 3261-3087", "comprador": "Flavio", "id": "p16", "statusOriginal": "Ligar 21/07 - após as 17:00"}, {"empresa": "PIZZARIA SCALLA", "segmento": "PIZZARIAS", "endereco": "R. Raynoldo Morbis, 535", "bairro": "Cajuru", "telefone": "41 - 99766-8882", "comprador": "Charles", "id": "p17", "statusOriginal": "Ligar 21/07 - após as 16:00"}, {"empresa": "DOM JHONES", "segmento": "PIZZARIAS", "endereco": "R. Sebastião Marcos Luiz, 2520", "bairro": "Cajuru", "telefone": "41 - 99191-9715", "comprador": "Hebert", "id": "p18", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "JOCA", "segmento": "PIZZARIAS", "endereco": "R. Niterói; 689", "bairro": "Cajuru", "telefone": "41 - 3220-7295", "comprador": "Plinio", "id": "p19", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PIZZARIA GARAGE 70", "segmento": "PIZZARIAS", "endereco": "R. Luiz França, 2389", "bairro": "Cajuru", "telefone": "41 - 3253-2121", "comprador": "Carlos", "id": "p20", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DOM MANO", "segmento": "PIZZARIAS", "endereco": "R. Ceilão, 32", "bairro": "Cajuru", "telefone": "41 3344-4450", "comprador": "Flavia", "id": "p21", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "JUSTINO PIZZA BAR", "segmento": "PIZZARIAS", "endereco": "R. Cap. Guilherme Bianchi, 484", "bairro": "Cajuru", "telefone": "41 - 3267-7927", "comprador": "Yuri", "id": "p22", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "GAZZOLA PIZZA", "segmento": "PIZZARIAS", "endereco": "R. Roraima, 668", "bairro": "Cajuru", "telefone": "41 - 3585-1327", "comprador": "Nair", "id": "p23", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "OS MESTRES", "segmento": "PIZZARIAS", "endereco": "R. Leonardo Gelinski, 1551", "bairro": "Cajuru", "telefone": "41 - 3010-2020", "comprador": "Jane", "id": "p24", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "ANEPAN", "segmento": "PANIFICADORAS", "endereco": "R. Cuiabá, 1748", "bairro": "Cajuru", "telefone": "41 - 3365-0853", "comprador": "Cleide", "id": "p25", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "SUPER PANE", "segmento": "PANIFICADORAS", "endereco": "R. Dos Ferroviários, 160", "bairro": "Cajuru", "telefone": "41 - 3266-3455", "comprador": "Fabiola", "id": "p26", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PÃO NOSSO", "segmento": "PANIFICADORAS", "endereco": "R. José Giraldi, 813", "bairro": "Cajuru", "telefone": "41 - 98459-4609", "comprador": "João", "id": "p27", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "CHEIRINHO DE PÃO", "segmento": "PANIFICADORAS", "endereco": "R. Anne Frank, 4027", "bairro": "Boqueirão", "telefone": "41 - 99976-8843", "comprador": "Dona Nice", "id": "p28", "statusOriginal": "Em contato/tabela enviada"}, {"empresa": "PÃES GHEDINI", "segmento": "PANIFICADORAS", "endereco": "R. Pastor Antonio Polito, 976", "bairro": "Boqueirão", "telefone": "41 - 3286-3680", "comprador": "Bernadete", "id": "p29", "statusOriginal": "Ligar + tarde"}, {"empresa": "CANTO DO PÃO", "segmento": "PANIFICADORAS", "endereco": "", "bairro": "Sitio Cercado", "telefone": "41 - 3308-6165", "comprador": "Marcos", "id": "p30", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "O PÃO DOURADO", "segmento": "PANIFICADORAS", "endereco": "", "bairro": "Sitio Cercado", "telefone": "41 - 3092-1408", "comprador": "Patricia", "id": "p31", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "A PRIMOROSA", "segmento": "PANIFICADORAS", "endereco": "", "bairro": "Sitio Cercado", "telefone": "41 - 3024-7444", "comprador": "Roberto", "id": "p32", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "COWBOY GRILL", "segmento": "RESTAURANTES", "endereco": "R. João Tobias de Paiva Netto", "bairro": "Cajuru", "telefone": "41 - 99500-5763", "comprador": "Kleyton", "id": "p33", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "KENDRA", "segmento": "RESTAURANTES", "endereco": "R. Luiz França, 1831", "bairro": "Cajuru", "telefone": "41 - 92001-1404", "comprador": "Stefanny", "id": "p34", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "RESTAURANTE RAYANE", "segmento": "RESTAURANTES", "endereco": "R. Eng. Costa Barros, 1788", "bairro": "Cajuru", "telefone": "41 - 99640-3243", "comprador": "Rayane", "id": "p35", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "RESTAURANTES DABLIO", "segmento": "RESTAURANTES", "endereco": "R. Paulo Setúbal, 4365", "bairro": "Boqueirão", "telefone": "41 - 3045-5863", "comprador": "Francisco", "id": "p36", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PALADAR GRILL", "segmento": "RESTAURANTES", "endereco": "Av. Nossa Senhora da Paz, 1751", "bairro": "Boqueirão", "telefone": "41 - 98782-7887", "comprador": "Renato", "id": "p37", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "SABORES GRILL", "segmento": "RESTAURANTES", "endereco": "R. Zonardy Ribas, 700", "bairro": "Boqueirão", "telefone": "41 - 3045-1273", "comprador": "Tulio", "id": "p38", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DONA TICA BAR E RESTAURANTE", "segmento": "RESTAURANTES", "endereco": "R. Gabriel Corisco Domingues, 348", "bairro": "Boqueirão", "telefone": "41 99126-8431", "comprador": "Tica", "id": "p39", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "TERRAMAR PORÇÕES", "segmento": "RESTAURANTES", "endereco": "R. Tenente Francisco Ferreira de Souza", "bairro": "Boqueirão", "telefone": "41 - 99293-2879", "comprador": "Fabricio", "id": "p40", "statusOriginal": "Em contato"}, {"empresa": "TOK DO CHEFE", "segmento": "RESTAURANTES", "endereco": "R. Alcino Guanabara, 1807", "bairro": "Hauer", "telefone": "41 - 3528-7772", "comprador": "Telles", "id": "p41", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DECK BUFFET", "segmento": "RESTAURANTES", "endereco": "R. Av. Marechal Floriano Peixoto, 5391", "bairro": "Hauer", "telefone": "41 - 98818-0534", "comprador": "Thais", "id": "p42", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "SANTA MAMMA", "segmento": "RESTAURANTES", "endereco": "R. Cel. Antônio Ricardo dos Santos, 1021", "bairro": "Hauer", "telefone": "41 - 99141-8999", "comprador": "Val", "id": "p43", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "AMERICA GRILL", "segmento": "RESTAURANTES", "endereco": "R. Av. Marechal Floriano Peixoto, 5351", "bairro": "Hauer", "telefone": "41 - 99961-5931", "comprador": "Paulo", "id": "p44", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "TEMPERO D'CASA", "segmento": "RESTAURANTES", "endereco": "R. Presidente Pádua Fleury, 977", "bairro": "Hauer", "telefone": "41 - 98533-4141", "comprador": "Viviane", "id": "p45", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "CANTINA CASSIOLI", "segmento": "RESTAURANTES", "endereco": "R. Prof. João Soares Barcelos", "bairro": "Hauer", "telefone": "41 - 3278-0876", "comprador": "Emerson", "id": "p46", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "CANTINHO DO SABOR", "segmento": "RESTAURANTES", "endereco": "R. Cruzeiro do Sul, 367", "bairro": "Sitio Cercado", "telefone": "41 - 99584-0968", "comprador": "Cleber", "id": "p47", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DOM MARTINI", "segmento": "RESTAURANTES", "endereco": "R. São José dos Pinhais", "bairro": "Sitio Cercado", "telefone": "41 - 99838-6944", "comprador": "Tereza", "id": "p48", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "COSTELÃO BIG BAR", "segmento": "RESTAURANTES", "endereco": "R. Izaac Ferreira da Cruz, 4470", "bairro": "Sitio Cercado", "telefone": "41 - 3378-6271", "comprador": "Helton", "id": "p49", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DON NATO", "segmento": "RESTAURANTES", "endereco": "R. Lupionópolis, 1153", "bairro": "Sitio Cercado", "telefone": "41 - 3227-5171", "comprador": "Salete", "id": "p50", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "SAL E PIMENTA", "segmento": "RESTAURANTES", "endereco": "R. Contenda, 52", "bairro": "Sitio Cercado", "telefone": "41 - 99608-2357", "comprador": "Alvaro", "id": "p51", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "ITAL'IN HOUSE", "segmento": "RESTAURANTES", "endereco": "R. Tijucas do Sul, 1777", "bairro": "Sitio Cercado", "telefone": "41 - 98776-7098", "comprador": "Diego", "id": "p52", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "DW BURUERS", "segmento": "HAMBURGUERIAS", "endereco": "R. Antonio Pereira Lopes, 1857", "bairro": "Cajuru", "telefone": "41 - 99945-5228", "comprador": "Felipe", "id": "p53", "statusOriginal": "Em contato"}, {"empresa": "WILL THE BURGUER", "segmento": "HAMBURGUERIAS", "endereco": "R. Rotildo Pulido, 545 A", "bairro": "Cajuru", "telefone": "41 - 99637-8878", "comprador": "Reny", "id": "p54", "statusOriginal": "Em contato"}, {"empresa": "PASTELARIA ERCILIA", "segmento": "HAMBURGUERIAS", "endereco": "R. Antonio Moreira Lopes, 1553", "bairro": "Cajuru", "telefone": "41 - 3261-3645", "comprador": "Erciclia", "id": "p55", "statusOriginal": "Em contato"}, {"empresa": "KF BURGER", "segmento": "HAMBURGUERIAS", "endereco": "R. Filipinas, 744", "bairro": "Cajuru", "telefone": "41 - 99836-6687", "comprador": "Bruno", "id": "p56", "statusOriginal": "Em contato"}, {"empresa": "TEXAS BURGERS", "segmento": "HAMBURGUERIAS", "endereco": "R. Sebastião Marcos Luiz, 644", "bairro": "Cajuru", "telefone": "41 - 99647-2166", "comprador": "Kaio", "id": "p57", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "POINT459", "segmento": "HAMBURGUERIAS", "endereco": "R. João Tobias de Paiva Netto, 1695", "bairro": "Cajuru", "telefone": "41 - 99817-9315", "comprador": "Dennis", "id": "p58", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "EXPERT BURGUER HOUSE", "segmento": "HAMBURGUERIAS", "endereco": "R. Maestro Carlos Frank, 1384", "bairro": "Boqueirão", "telefone": "41 - 98823-5258", "comprador": "Maicon", "id": "p59", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "KI LANCHES", "segmento": "HAMBURGUERIAS", "endereco": "R. Maestro Carlos Frank, 1660", "bairro": "Boqueirão", "telefone": "41 - 3078-2727", "comprador": "Emerson", "id": "p60", "statusOriginal": "Em contato"}, {"empresa": "BLACK BURGER BAR", "segmento": "HAMBURGUERIAS", "endereco": "R. Mal. Floriano Peixoto, 7816", "bairro": "Boqueirão", "telefone": "41 - 30787710", "comprador": "Daniel", "id": "p61", "statusOriginal": "Em contato"}, {"empresa": "ROMERO BURGER", "segmento": "HAMBURGUERIAS", "endereco": "R. ORIZONA, 2200", "bairro": "Sitio Cercado", "telefone": "41 - 99835-5514", "comprador": "Vinicius", "id": "p62", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "GARAGE STAR", "segmento": "HAMBURGUERIAS", "endereco": "R. São Jose dos Pinhais, 254", "bairro": "Sitio Cercado", "telefone": "41 - 3322-9232", "comprador": "Reinaldo", "id": "p63", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "BIG BURGUER", "segmento": "HAMBURGUERIAS", "endereco": "R. Jussara, 2905", "bairro": "Sitio Cercado", "telefone": "41 - 99707-0739", "comprador": "Diogo", "id": "p64", "statusOriginal": "Em contato"}, {"empresa": "ON CWB", "segmento": "HAMBURGUERIAS", "endereco": "R. Orizona, 2648", "bairro": "Sitio Cercado", "telefone": "41 - 99289-6449", "comprador": "Jair", "id": "p65", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "BM BURGER", "segmento": "HAMBURGUERIAS", "endereco": "R. Francisco Derosso, 3907", "bairro": "Xaxim", "telefone": "41 - 97403-4720", "comprador": "José", "id": "p66", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "BURGUER BAR", "segmento": "HAMBURGUERIAS", "endereco": "R. Francisco Derosso, 1095", "bairro": "Xaxim", "telefone": "41 - 9082-8229", "comprador": "Saulo", "id": "p67", "statusOriginal": "Em contato/agendar visita"}, {"empresa": "PICKLES BURGER", "segmento": "HAMBURGUERIAS", "endereco": "R. Desembargador Ermelino de Leão, 15", "bairro": "Centro", "telefone": "41 - 98904-8108", "comprador": "Thiago", "id": "p68", "statusOriginal": "Em contato"}, {"empresa": "MERCADO BORGES", "segmento": "SUPERMERCADOS", "endereco": "R. Leonardo Novicki, 748", "bairro": "Cajuru", "telefone": "41 - 9906-3757", "comprador": "Leonan", "id": "p69", "statusOriginal": "Em contato"}, {"empresa": "AGRICER", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Leandro", "id": "p70", "statusOriginal": "Carteira"}, {"empresa": "FRIMAIS", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Adriano", "id": "p71", "statusOriginal": "Carteira"}, {"empresa": "MECADO ZUCCO", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Elias", "id": "p72", "statusOriginal": "Carteira"}, {"empresa": "ZAMP", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Iran", "id": "p73", "statusOriginal": "Carteira/agendar visita"}, {"empresa": "BASTARDS - FOOD", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Cid", "id": "p74", "statusOriginal": "Carteira"}, {"empresa": "EMPORIUM", "segmento": "SUPERMERCADOS", "endereco": "", "bairro": "", "telefone": "", "comprador": "Rodrigo", "id": "p75", "statusOriginal": "Carteira"}]`);
 
@@ -158,6 +157,8 @@ let state = {
   weekOffset: 0,
   formMode: 'base',
   formProspectId: '',
+  expandedLogId: null,
+  showRetornosConcluidos: false,
 };
 
 function toast(msg){
@@ -168,50 +169,79 @@ function toast(msg){
 }
 
 state.storageOK = true;
+state.syncing = false;
 
-async function safeGet(key){
-  try{
-    const r = await window.storage.get(key, true);
-    return r ? r.value : null;
-  }catch(e){ return null; }
+async function apiGet(action){
+  const url = SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&_=' + Date.now();
+  const res = await fetch(url, {method:'GET'});
+  if(!res.ok) throw new Error('Falha na leitura (' + res.status + ')');
+  return res.json();
 }
 
-async function safeSet(key, value, retries){
-  retries = retries===undefined ? 1 : retries;
-  try{
-    await window.storage.set(key, value, true);
-    state.storageOK = true;
-    return true;
-  }catch(e){
-    if(retries > 0){
-      await new Promise(r=>setTimeout(r, 400));
-      return safeSet(key, value, retries-1);
-    }
-    state.storageOK = false;
-    return false;
-  }
+async function apiPost(payload){
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST',
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error('Falha ao salvar (' + res.status + ')');
+  const data = await res.json();
+  if(data && data.error) throw new Error(data.error);
+  return data;
 }
 
 async function loadAll(){
-  const pRaw = await safeGet(STORAGE_PROSPECTS);
-  const lRaw = await safeGet(STORAGE_LOGS);
-  const cRaw = await safeGet(STORAGE_CONFIG);
+  if(!SCRIPT_URL || SCRIPT_URL.indexOf('COLE_AQUI') === 0){
+    state.prospects = DEFAULT_PROSPECTS.slice();
+    state.logs = [];
+    state.config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    state.storageOK = false;
+    render();
+    return;
+  }
+  try{
+    const data = await apiGet('getAll');
+    let prospects = data.prospects || [];
+    let config = data.config;
 
-  try{ state.prospects = pRaw ? JSON.parse(pRaw) : DEFAULT_PROSPECTS.slice(); }catch(e){ state.prospects = DEFAULT_PROSPECTS.slice(); }
-  try{ state.logs = lRaw ? JSON.parse(lRaw) : []; }catch(e){ state.logs = []; }
-  try{ state.config = cRaw ? JSON.parse(cRaw) : JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }catch(e){ state.config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)); }
-  if(!state.config.gestorPin) state.config.gestorPin = DEFAULT_CONFIG.gestorPin;
+    if(!prospects.length){
+      await apiPost({action:'seedProspects', prospects: DEFAULT_PROSPECTS});
+      prospects = DEFAULT_PROSPECTS.slice();
+    }
+    if(!config){
+      config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      await apiPost({action:'saveConfig', config});
+    }
+    if(!config.gestorPin) config.gestorPin = DEFAULT_CONFIG.gestorPin;
 
-  if(!pRaw) await safeSet(STORAGE_PROSPECTS, JSON.stringify(state.prospects));
-  if(!lRaw) await safeSet(STORAGE_LOGS, JSON.stringify(state.logs));
-  if(!cRaw) await safeSet(STORAGE_CONFIG, JSON.stringify(state.config));
-
+    state.prospects = prospects;
+    state.logs = (data.logs || []).map(l=>({...l, retornoFeito: l.retornoFeito===true||l.retornoFeito==='true'||l.retornoFeito==='TRUE'}));
+    state.config = config;
+    state.storageOK = true;
+  }catch(e){
+    state.prospects = state.prospects || DEFAULT_PROSPECTS.slice();
+    state.logs = state.logs || [];
+    state.config = state.config || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    state.storageOK = false;
+    state.syncError = e.message;
+  }
   render();
 }
 
-async function saveProspects(){ return safeSet(STORAGE_PROSPECTS, JSON.stringify(state.prospects)); }
-async function saveLogs(){ return safeSet(STORAGE_LOGS, JSON.stringify(state.logs)); }
-async function saveConfig(){ return safeSet(STORAGE_CONFIG, JSON.stringify(state.config)); }
+async function refreshFromServer(){
+  if(!SCRIPT_URL || SCRIPT_URL.indexOf('COLE_AQUI') === 0) return;
+  try{
+    const data = await apiGet('getAll');
+    state.prospects = data.prospects || state.prospects;
+    state.logs = (data.logs || []).map(l=>({...l, retornoFeito: l.retornoFeito===true||l.retornoFeito==='true'||l.retornoFeito==='TRUE'}));
+    if(data.config) state.config = data.config;
+    state.storageOK = true;
+    render();
+  }catch(e){
+    state.storageOK = false;
+    render();
+  }
+}
 
 function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
 function fmtDateBR(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
@@ -259,7 +289,11 @@ function render(){
   }
   let html = renderHeader();
   if(!state.storageOK){
-    html += `<div class="flag" style="margin-bottom:14px;"><b>Aviso:</b> não consegui confirmar a gravação na nuvem agora. Continue usando normalmente — ao final, feche e abra o app de novo para conferir se seus contatos foram salvos. Se sumirem, registre novamente.</div>`;
+    if(!SCRIPT_URL || SCRIPT_URL.indexOf('COLE_AQUI') === 0){
+      html += `<div class="flag" style="margin-bottom:14px;"><b>Configuração pendente:</b> cole a URL do seu Google Apps Script na constante SCRIPT_URL, no início do código, para os dados começarem a ser salvos na planilha.</div>`;
+    } else {
+      html += `<div class="flag" style="margin-bottom:14px;"><b>Aviso:</b> não consegui confirmar a gravação na planilha agora${state.syncError ? ' ('+state.syncError+')' : ''}. Confira sua internet e tente novamente — os últimos dados podem não ter sido salvos.</div>`;
+    }
   }
   if(state.role==='colab') html += renderColab();
   else html += renderGestor();
@@ -337,9 +371,12 @@ function renderHeader(){
         <h1>Controle de <span>Prospecção</span> — LP</h1>
         <div class="sub">Bovinos (Astra) · Laticínios &amp; Frios para pizzarias</div>
       </div>
-      <div class="role-switch">
-        <button class="${state.role==='colab'?'active':''}" onclick="setRole('colab')">Colaboradora</button>
-        <button class="${state.role==='gestor'?'active':''}" onclick="setRole('gestor')">Gestor</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn secondary small" style="width:auto;" onclick="refreshFromServer()" title="Buscar dados mais recentes da planilha">↻ Atualizar</button>
+        <div class="role-switch">
+          <button class="${state.role==='colab'?'active':''}" onclick="setRole('colab')">Colaboradora</button>
+          <button class="${state.role==='gestor'?'active':''}" onclick="setRole('gestor')">Gestor</button>
+        </div>
       </div>
     </div>
     <div class="weekstrip">${dots}</div>
@@ -348,14 +385,17 @@ function renderHeader(){
 
 // ---------------- COLABORADORA VIEW ----------------
 function renderColab(){
+  const pendCount = state.logs.filter(l=>l.dataRetorno && !l.retornoFeito && l.dataRetorno<=todayISO()).length;
   let html = `<div class="tabs">
     <button class="${state.colabTab==='registrar'?'active':''}" onclick="setColabTab('registrar')">Registrar contato</button>
     <button class="${state.colabTab==='hoje'?'active':''}" onclick="setColabTab('hoje')">Meu dia</button>
+    <button class="${state.colabTab==='retornos'?'active':''}" onclick="setColabTab('retornos')">Retornos${pendCount?' ('+pendCount+')':''}</button>
     <button class="${state.colabTab==='base'?'active':''}" onclick="setColabTab('base')">Base de clientes</button>
   </div>`;
 
   if(state.colabTab==='registrar') html += renderFormRegistrar();
   else if(state.colabTab==='hoje') html += renderMeuDia();
+  else if(state.colabTab==='retornos') html += renderRetornos();
   else html += renderBase(true);
 
   return html;
@@ -406,7 +446,9 @@ function renderFormRegistrar(){
         <option value="">— selecione —</option>
         ${prospectOptions}
       </select>
-    </div>` : `
+    </div>
+    ${state.formProspectId ? `<div class="field"><label>Contato responsável (comprador, dono...)</label><input id="f_comprador" value="${(state.prospects.find(p=>p.id===state.formProspectId)||{}).comprador||''}" placeholder="Ex: João"></div>` : ''}
+    ` : `
     <div class="row">
       <div class="field"><label>Nome do cliente</label><input id="f_novo_nome" placeholder="Ex: Pizzaria Tal" value="${state.formNovoNome||''}"></div>
       <div class="field"><label>Segmento</label>
@@ -424,7 +466,9 @@ function renderFormRegistrar(){
       <div class="field"><label>Bairro</label><input id="f_novo_bairro" placeholder="Ex: Boqueirão"></div>
       <div class="field"><label>Telefone</label><input id="f_novo_telefone" placeholder="(41) 9...."></div>
     </div>
-    `}
+    <div class="row">
+      <div class="field"><label>Contato responsável (comprador, dono...)</label><input id="f_novo_comprador" placeholder="Ex: João"></div>
+    </div>`}
     <div class="row">
       <div class="field">
         <label>Tipo de cliente</label>
@@ -495,6 +539,9 @@ async function salvarContato(){
   const isNovo = state.formMode === 'novo';
   let empresaNome = '';
   let prospectId = '';
+  let compradorInformado = '';
+  let novoProspect = null;
+  let prospectRef = null;
 
   if(isNovo){
     const nome = document.getElementById('f_novo_nome').value.trim();
@@ -502,23 +549,28 @@ async function salvarContato(){
     const segmento = document.getElementById('f_novo_segmento').value;
     const bairro = document.getElementById('f_novo_bairro').value.trim();
     const telefone = document.getElementById('f_novo_telefone').value.trim();
+    const comprador = document.getElementById('f_novo_comprador').value.trim();
     const newId = 'p_' + Date.now();
-    const novoProspect = {id:newId, empresa:nome, segmento, bairro, telefone, comprador:'', statusOriginal:'', statusAtual:'Em contato', tipoBase:'novo', endereco:''};
-    state.prospects.push(novoProspect);
+    novoProspect = {id:newId, empresa:nome, segmento, bairro, telefone, comprador, statusOriginal:'', statusAtual:'Em contato', tipoBase:'novo', endereco:''};
     empresaNome = nome;
     prospectId = newId;
+    compradorInformado = comprador;
   } else {
     prospectId = state.formProspectId;
     if(!prospectId){ toast('Selecione um cliente'); return; }
     const p = state.prospects.find(x=>x.id===prospectId);
     if(!p){ toast('Cliente inválido'); return; }
     empresaNome = p.empresa;
+    const compradorField = document.getElementById('f_comprador');
+    compradorInformado = compradorField ? compradorField.value.trim() : (p.comprador||'');
+    prospectRef = p;
   }
 
   const entry = {
     id: 'l_' + Date.now(),
     prospectId: prospectId,
     empresaNome,
+    comprador: compradorInformado,
     data: document.getElementById('f_data').value || todayISO(),
     tipoCliente: document.getElementById('f_tipo').value,
     produto: document.getElementById('f_produto').value,
@@ -527,17 +579,28 @@ async function salvarContato(){
     proximaAcao: document.getElementById('f_proxima').value.trim(),
     dataRetorno: document.getElementById('f_retorno').value,
     obs: document.getElementById('f_obs').value.trim(),
+    retornoFeito: false,
     criadoEm: new Date().toISOString(),
   };
-  state.logs.push(entry);
 
-  // update prospect status
-  const p2 = state.prospects.find(x=>x.id===entry.prospectId);
-  if(p2) p2.statusAtual = entry.resultado;
+  try{
+    if(isNovo){
+      await apiPost({action:'addProspect', prospect: novoProspect});
+      state.prospects.push(novoProspect);
+    } else {
+      prospectRef.comprador = compradorInformado;
+      prospectRef.statusAtual = entry.resultado;
+      await apiPost({action:'updateProspect', prospect: prospectRef});
+    }
+    await apiPost({action:'addLog', entry});
+    state.logs.push(entry);
+    state.storageOK = true;
+    toast('Contato registrado!');
+  }catch(e){
+    state.storageOK = false;
+    toast('Não consegui salvar na planilha. Confira a conexão e tente de novo.');
+  }
 
-  await saveLogs();
-  await saveProspects();
-  toast('Contato registrado!');
   state.formProspectId='';
   state.formMode='base';
   render();
@@ -580,7 +643,7 @@ function renderBaseList(){
   if(!listEl) return;
   const term = (document.getElementById('baseSearch')?.value || '').toLowerCase();
   const items = state.prospects
-    .filter(p=> p.empresa.toLowerCase().includes(term) || (p.bairro||'').toLowerCase().includes(term))
+    .filter(p=> p.empresa.toLowerCase().includes(term) || (p.bairro||'').toLowerCase().includes(term) || (p.comprador||'').toLowerCase().includes(term))
     .sort((a,b)=>a.empresa.localeCompare(b.empresa));
   listEl.innerHTML = items.map(p=>{
     const lastLog = state.logs.filter(l=>l.prospectId===p.id).slice(-1)[0];
@@ -588,6 +651,7 @@ function renderBaseList(){
       <div class="info">
         <b>${p.empresa}</b>
         <span>${p.segmento}${p.bairro?' · '+p.bairro:''}${p.telefone?' · '+p.telefone:''}</span>
+        <span>${p.comprador?'Contato: '+p.comprador:'Contato: não informado'}</span>
         <span>${lastLog ? 'Último contato: '+fmtDateBR(lastLog.data)+' — '+lastLog.resultado : 'Nunca contatado'}</span>
       </div>
       <button class="btn small" onclick="selecionarParaContato('${p.id}')">Registrar</button>
@@ -604,15 +668,18 @@ function selecionarParaContato(id){
 
 // ---------------- GESTOR VIEW ----------------
 function renderGestor(){
+  const pendCount = state.logs.filter(l=>l.dataRetorno && !l.retornoFeito && l.dataRetorno<=todayISO()).length;
   let html = `<div class="tabs">
     <button class="${state.gestorTab==='painel'?'active':''}" onclick="setGestorTab('painel')">Painel semanal</button>
     <button class="${state.gestorTab==='log'?'active':''}" onclick="setGestorTab('log')">Histórico</button>
+    <button class="${state.gestorTab==='retornos'?'active':''}" onclick="setGestorTab('retornos')">Retornos${pendCount?' ('+pendCount+')':''}</button>
     <button class="${state.gestorTab==='cobertura'?'active':''}" onclick="setGestorTab('cobertura')">Cobertura da base</button>
     <button class="${state.gestorTab==='base'?'active':''}" onclick="setGestorTab('base')">Base de clientes</button>
     <button class="${state.gestorTab==='metas'?'active':''}" onclick="setGestorTab('metas')">Metas</button>
   </div>`;
   if(state.gestorTab==='painel') html += renderPainel();
   else if(state.gestorTab==='log') html += renderLog();
+  else if(state.gestorTab==='retornos') html += renderRetornos();
   else if(state.gestorTab==='cobertura') html += renderCobertura();
   else if(state.gestorTab==='base') html += renderBase(false);
   else html += renderMetasEdit();
@@ -704,7 +771,20 @@ function changeWeek(delta){ state.weekOffset += delta; render(); }
 function renderLog(){
   const wk = weekDates(state.weekOffset);
   const items = state.logs.filter(l=>wk.includes(l.data)).sort((a,b)=> b.data.localeCompare(a.data) || b.criadoEm.localeCompare(a.criadoEm));
-  let rows = items.map(l=>`
+  let rows = items.map(l=>{
+    const expanded = state.expandedLogId === l.id;
+    let details = '';
+    if(expanded){
+      details = `<tr><td colspan="7" style="background:var(--card2);">
+        <div style="font-size:12.5px;padding:4px 2px;">
+          <div><b>Contato responsável:</b> ${l.comprador || '—'}</div>
+          <div><b>Próxima ação:</b> ${l.proximaAcao || '—'}</div>
+          <div><b>Retornar em:</b> ${l.dataRetorno ? fmtDateBR(l.dataRetorno) + (l.retornoFeito?' (concluído)':'') : '—'}</div>
+          <div><b>Observação:</b> ${l.obs || '—'}</div>
+        </div>
+      </td></tr>`;
+    }
+    return `
     <tr>
       <td>${fmtDateBR(l.data)}</td>
       <td>${l.empresaNome}</td>
@@ -712,8 +792,12 @@ function renderLog(){
       <td>${l.produto}</td>
       <td>${l.canal}</td>
       <td>${l.resultado}</td>
-      <td><button class="btn small danger" onclick="excluirLog('${l.id}')">Excluir</button></td>
-    </tr>`).join('');
+      <td style="white-space:nowrap;">
+        <button class="btn small secondary" onclick="toggleLogDetails('${l.id}')">${expanded?'Fechar':'Detalhes'}</button>
+        <button class="btn small danger" onclick="excluirLog('${l.id}')">Excluir</button>
+      </td>
+    </tr>${details}`;
+  }).join('');
   if(!rows) rows = `<tr><td colspan="7" class="empty">Nenhum registro nesta semana.</td></tr>`;
   return `
   <div class="weeknav">
@@ -732,6 +816,73 @@ function renderLog(){
       <tbody>${rows}</tbody>
     </table>
   </div>`;
+}
+
+function renderRetornos(){
+  const today = todayISO();
+  const showDone = state.showRetornosConcluidos;
+  let items = state.logs.filter(l=>l.dataRetorno);
+  if(!showDone) items = items.filter(l=>!l.retornoFeito);
+  items = items.slice().sort((a,b)=>a.dataRetorno.localeCompare(b.dataRetorno));
+
+  const atrasados = items.filter(l=>l.dataRetorno < today && !l.retornoFeito).length;
+
+  let topFlag = '';
+  if(atrasados > 0){
+    topFlag = `<div class="flag"><b>${atrasados} retorno(s) atrasado(s).</b> Esses contatos já deveriam ter sido refeitos.</div>`;
+  }
+
+  const rows = items.map(l=>{
+    let statusLbl, statusColor;
+    if(l.retornoFeito){ statusLbl='Concluído'; statusColor='var(--muted)'; }
+    else if(l.dataRetorno < today){ statusLbl='Atrasado'; statusColor='var(--red)'; }
+    else if(l.dataRetorno === today){ statusLbl='Hoje'; statusColor='var(--gold)'; }
+    else { statusLbl='Em breve'; statusColor='var(--green)'; }
+    return `
+    <div class="prow" style="align-items:flex-start;">
+      <div class="info">
+        <b>${l.empresaNome} <span style="color:${statusColor};font-size:11.5px;font-weight:700;">· ${statusLbl} — ${fmtDateBR(l.dataRetorno)}</span></b>
+        <span>Ação: ${l.proximaAcao || '—'}</span>
+        ${l.obs ? `<span>Obs: ${l.obs}</span>` : ''}
+        <span>Contato original: ${fmtDateBR(l.data)} · ${l.resultado}</span>
+      </div>
+      <button class="btn small ${l.retornoFeito?'secondary':''}" onclick="toggleRetornoFeito('${l.id}')">${l.retornoFeito?'Reabrir':'Concluir'}</button>
+    </div>`;
+  }).join('') || '<div class="empty">Nenhum retorno pendente.</div>';
+
+  return `
+  <div class="card">
+    <h2>Próximos retornos</h2>
+    ${topFlag}
+    <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin:10px 0;">
+      <input type="checkbox" id="chkShowDone" ${showDone?'checked':''} onchange="toggleShowDone(this.checked)" style="width:auto;">
+      Mostrar concluídos também
+    </label>
+    <div class="plist">${rows}</div>
+  </div>`;
+}
+
+function toggleShowDone(val){ state.showRetornosConcluidos = val; render(); }
+
+async function toggleRetornoFeito(id){
+  const l = state.logs.find(x=>x.id===id);
+  if(l){
+    const novoValor = !l.retornoFeito;
+    try{
+      await apiPost({action:'updateLog', id, fields:{retornoFeito: novoValor}});
+      l.retornoFeito = novoValor;
+      state.storageOK = true;
+    }catch(e){
+      state.storageOK = false;
+      toast('Não consegui salvar. Tente de novo.');
+    }
+    render();
+  }
+}
+
+function toggleLogDetails(id){
+  state.expandedLogId = state.expandedLogId===id ? null : id;
+  render();
 }
 
 function csvEscape(v){
@@ -771,6 +922,7 @@ function exportLogsCSV(scope){
   const headers = [
     {key:'data', label:'Data'},
     {key:'empresaNome', label:'Cliente'},
+    {key:'comprador', label:'Contato responsável'},
     {key:'tipoCliente', label:'Tipo (novo/carteira)'},
     {key:'produto', label:'Linha de produto'},
     {key:'canal', label:'Canal'},
@@ -803,8 +955,14 @@ function exportBaseCSV(){
 
 async function excluirLog(id){
   if(!confirm('Excluir este registro?')) return;
-  state.logs = state.logs.filter(l=>l.id!==id);
-  await saveLogs();
+  try{
+    await apiPost({action:'deleteLog', id});
+    state.logs = state.logs.filter(l=>l.id!==id);
+    state.storageOK = true;
+  }catch(e){
+    state.storageOK = false;
+    toast('Não consegui excluir. Tente de novo.');
+  }
   render();
 }
 
@@ -868,21 +1026,33 @@ function renderMetasEdit(){
 async function salvarPin(){
   const val = (document.getElementById('novoPin').value || '').trim();
   if(!val){ toast('Nada foi alterado'); return; }
+  const antigo = state.config.gestorPin;
   state.config.gestorPin = val;
-  await saveConfig();
-  toast('PIN atualizado!');
+  try{
+    await apiPost({action:'saveConfig', config: state.config});
+    toast('PIN atualizado!');
+  }catch(e){
+    state.config.gestorPin = antigo;
+    toast('Não consegui salvar o PIN. Tente de novo.');
+  }
   render();
 }
 
 async function salvarMetas(){
+  const backup = JSON.parse(JSON.stringify(state.config));
   for(let i=1;i<=5;i++){
     state.config.metas[i].ligMin = parseInt(document.getElementById('meta_ligmin_'+i).value)||0;
     state.config.metas[i].ligMax = parseInt(document.getElementById('meta_ligmax_'+i).value)||0;
     state.config.metas[i].visMin = parseInt(document.getElementById('meta_vismin_'+i).value)||0;
     state.config.metas[i].visMax = parseInt(document.getElementById('meta_vismax_'+i).value)||0;
   }
-  await saveConfig();
-  toast('Metas atualizadas!');
+  try{
+    await apiPost({action:'saveConfig', config: state.config});
+    toast('Metas atualizadas!');
+  }catch(e){
+    state.config = backup;
+    toast('Não consegui salvar. Tente de novo.');
+  }
   render();
 }
 
