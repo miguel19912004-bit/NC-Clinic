@@ -186,21 +186,31 @@ function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2200);
+  const duration = msg && msg.length > 50 ? 4500 : 2200;
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), duration);
 }
 
 state.storageOK = true;
 state.syncing = false;
 
+function fetchWithTimeout(url, options, ms){
+  ms = ms || 15000;
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject)=> setTimeout(()=> reject(new Error('Tempo esgotado ao falar com a planilha. Confira sua internet e tente de novo.')), ms))
+  ]);
+}
+
 async function apiGet(action){
   const url = SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&_=' + Date.now();
-  const res = await fetch(url, {method:'GET'});
+  const res = await fetchWithTimeout(url, {method:'GET'});
   if(!res.ok) throw new Error('Falha na leitura (' + res.status + ')');
   return res.json();
 }
 
 async function apiPost(payload){
-  const res = await fetch(SCRIPT_URL, {
+  const res = await fetchWithTimeout(SCRIPT_URL, {
     method:'POST',
     headers: {'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify(payload)
@@ -670,7 +680,8 @@ async function salvarContato(){
     state.formMode='base';
   }catch(e){
     state.storageOK = false;
-    toast('Não consegui salvar na planilha. Confira a conexão e tente de novo.');
+    state.syncError = e.message;
+    toast(e.message || 'Não consegui salvar na planilha. Confira a conexão e tente de novo.');
   }
 
   state.savingContato = false;
@@ -1105,9 +1116,11 @@ async function excluirLog(id){
 
 function renderCobertura(){
   const contactedIds = new Set(state.logs.map(l=>l.prospectId));
-  const total = state.prospects.length;
-  const contacted = state.prospects.filter(p=>contactedIds.has(p.id)).length;
-  const neverContacted = state.prospects.filter(p=>!contactedIds.has(p.id) && p.tipoBase!=='carteira');
+  const carteiraCount = state.prospects.filter(p=>p.tipoBase==='carteira').length;
+  const prospeccaoAlvo = state.prospects.filter(p=>p.tipoBase!=='carteira');
+  const total = prospeccaoAlvo.length;
+  const contacted = prospeccaoAlvo.filter(p=>contactedIds.has(p.id)).length;
+  const neverContacted = prospeccaoAlvo.filter(p=>!contactedIds.has(p.id));
   const pct = total ? Math.round((contacted/total)*100) : 0;
   let rows = neverContacted.map(p=>`
     <tr><td>${p.empresa}</td><td>${p.segmento}</td><td>${p.bairro||'-'}</td><td>${p.comprador||'-'}</td></tr>
@@ -1116,6 +1129,7 @@ function renderCobertura(){
   return `
   <div class="card">
     <h2>Cobertura da base</h2>
+    <p class="muted" style="font-size:12.5px;margin-top:-6px;">Considerando só clientes-alvo de prospecção (${total} do total de ${total+carteiraCount} — os outros ${carteiraCount} já são carteira ativa e não entram nessa conta).</p>
     <div class="stat-grid">
       <div class="stat"><b>${contacted}/${total}</b><span>Já contatados alguma vez</span></div>
       <div class="stat"><b>${pct}%</b><span>Cobertura total</span></div>
