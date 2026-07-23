@@ -625,7 +625,7 @@ async function salvarContato(){
 
   if(isNovo){
     const nome = document.getElementById('f_novo_nome').value.trim();
-    if(!nome){ toast('Digite o nome do cliente novo'); return; }
+    if(!nome){ toast('Digite o nome do cliente novo'); state.savingContato=false; render(); return; }
     const segmento = document.getElementById('f_novo_segmento').value;
     const bairro = document.getElementById('f_novo_bairro').value.trim();
     const telefone = document.getElementById('f_novo_telefone').value.trim();
@@ -637,9 +637,9 @@ async function salvarContato(){
     compradorInformado = comprador;
   } else {
     prospectId = state.formProspectId;
-    if(!prospectId){ toast('Selecione um cliente'); return; }
+    if(!prospectId){ toast('Selecione um cliente'); state.savingContato=false; render(); return; }
     const p = state.prospects.find(x=>x.id===prospectId);
-    if(!p){ toast('Cliente inválido'); return; }
+    if(!p){ toast('Cliente inválido'); state.savingContato=false; render(); return; }
     empresaNome = p.empresa;
     const compradorField = document.getElementById('f_comprador');
     compradorInformado = compradorField ? compradorField.value.trim() : (p.comprador||'');
