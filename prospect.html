@@ -161,6 +161,7 @@ let state = {
   expandedLogId: null,
   showRetornosConcluidos: false,
   savingContato: false,
+  savingCliente: false,
   selectedDay: null,
   dayFilter: null,
 };
@@ -274,7 +275,13 @@ async function refreshFromServer(){
   }
 }
 
-function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
 function fmtDateBR(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
 
 // Monday-based week helpers
@@ -286,7 +293,12 @@ function getMonday(dateObj){
   d.setHours(0,0,0,0);
   return d;
 }
-function isoOf(d){ return d.toISOString().slice(0,10); }
+function isoOf(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
 function weekDates(offset){
   const base = new Date();
   base.setDate(base.getDate() + offset*7);
@@ -467,29 +479,10 @@ function renderFormRegistrar(){
     <h2>Registrar contato</h2>
     <div class="role-switch" style="margin-bottom:14px;">
       <button class="${state.formMode==='base'?'active':''}" onclick="setFormMode('base')">Cliente da base</button>
-      <button class="${state.formMode==='novo'?'active':''}" onclick="setFormMode('novo')">+ Cliente novo</button>
+      <button class="${state.formMode==='novo'?'active':''}" onclick="setFormMode('novo')">+ Cadastrar cliente novo</button>
     </div>
-    ${state.formMode==='base' ? renderClientPickerBlock() : `
-    <div class="row">
-      <div class="field"><label>Nome do cliente</label><input id="f_novo_nome" placeholder="Ex: Pizzaria Tal" value="${state.formNovoNome||''}"></div>
-      <div class="field"><label>Segmento</label>
-        <select id="f_novo_segmento">
-          <option value="PIZZARIAS">Pizzarias</option>
-          <option value="RESTAURANTES">Restaurantes</option>
-          <option value="PANIFICADORAS">Panificadoras</option>
-          <option value="HAMBURGUERIAS">Hamburguerias</option>
-          <option value="SUPERMERCADOS">Supermercados</option>
-          <option value="OUTROS">Outros</option>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Bairro</label><input id="f_novo_bairro" placeholder="Ex: Boqueirão"></div>
-      <div class="field"><label>Telefone</label><input id="f_novo_telefone" placeholder="(41) 9...."></div>
-    </div>
-    <div class="row">
-      <div class="field"><label>Contato responsável (comprador, dono...)</label><input id="f_novo_comprador" placeholder="Ex: João"></div>
-    </div>`}
+    ${state.formMode==='novo' ? renderNovoClienteBlock() : renderClientPickerBlock()}
+    ${state.formMode==='novo' ? '' : `
     <div class="row">
       <div class="field">
         <label>Tipo de cliente</label>
@@ -542,10 +535,74 @@ function renderFormRegistrar(){
       <textarea id="f_obs" placeholder="Detalhes da conversa..."></textarea>
     </div>
     <button class="btn" onclick="salvarContato()" ${state.savingContato?'disabled':''}>${state.savingContato?'Salvando...':'Salvar contato'}</button>
+    `}
   </div>`;
 }
 
 function setFormMode(m){ state.formMode = m; state.formProspectId=''; render(); }
+
+function renderNovoClienteBlock(){
+  return `
+  <p class="muted" style="font-size:12.5px;margin:-6px 0 12px;">Primeiro cadastramos o cliente. Depois de salvo, ele aparece na base e você registra o contato normalmente.</p>
+  <div class="row">
+    <div class="field"><label>Nome do cliente *</label><input id="f_novo_nome" placeholder="Ex: Pizzaria Tal"></div>
+    <div class="field"><label>Segmento</label>
+      <select id="f_novo_segmento">
+        <option value="PIZZARIAS">Pizzarias</option>
+        <option value="RESTAURANTES">Restaurantes</option>
+        <option value="PANIFICADORAS">Panificadoras</option>
+        <option value="HAMBURGUERIAS">Hamburguerias</option>
+        <option value="SUPERMERCADOS">Supermercados</option>
+        <option value="OUTROS">Outros</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Bairro</label><input id="f_novo_bairro" placeholder="Ex: Boqueirão"></div>
+    <div class="field"><label>Telefone</label><input id="f_novo_telefone" placeholder="(41) 9...."></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Contato responsável (comprador, dono...)</label><input id="f_novo_comprador" placeholder="Ex: João"></div>
+    <div class="field"><label>Tipo</label>
+      <select id="f_novo_tipoBase">
+        <option value="novo">Prospecção (nunca comprou)</option>
+        <option value="carteira">Já é carteira ativa</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn" onclick="salvarNovoCliente()" ${state.savingCliente?'disabled':''}>${state.savingCliente?'Salvando...':'Salvar cliente'}</button>`;
+}
+
+async function salvarNovoCliente(){
+  if(state.savingCliente) return;
+  const nome = document.getElementById('f_novo_nome').value.trim();
+  if(!nome){ toast('Digite o nome do cliente'); return; }
+
+  const segmento = document.getElementById('f_novo_segmento').value;
+  const bairro = document.getElementById('f_novo_bairro').value.trim();
+  const telefone = document.getElementById('f_novo_telefone').value.trim();
+  const comprador = document.getElementById('f_novo_comprador').value.trim();
+  const tipoBase = document.getElementById('f_novo_tipoBase').value;
+  const newId = 'p_' + Date.now();
+  const novoProspect = {id:newId, empresa:nome, segmento, bairro, telefone, comprador, statusOriginal:'', statusAtual:'Em contato', tipoBase, endereco:''};
+
+  state.savingCliente = true;
+  render();
+  try{
+    await apiPost({action:'addProspect', prospect: novoProspect});
+    state.prospects.push(novoProspect);
+    state.storageOK = true;
+    toast('Cliente cadastrado! Agora registre o contato.');
+    state.formMode = 'base';
+    state.formProspectId = newId;
+  }catch(e){
+    state.storageOK = false;
+    state.syncError = e.message;
+    toast(e.message || 'Não consegui salvar o cliente. Tente de novo.');
+  }
+  state.savingCliente = false;
+  render();
+}
 
 function renderClientPickerBlock(){
   if(state.formProspectId){
@@ -613,43 +670,18 @@ function clearProspectSelection(){
 
 async function salvarContato(){
   if(state.savingContato) return;
-  state.savingContato = true;
-  render();
+  const prospectId = state.formProspectId;
+  if(!prospectId){ toast('Selecione um cliente da base ou cadastre um novo'); return; }
+  const prospectRef = state.prospects.find(x=>x.id===prospectId);
+  if(!prospectRef){ toast('Cliente inválido'); return; }
 
-  const isNovo = state.formMode === 'novo';
-  let empresaNome = '';
-  let prospectId = '';
-  let compradorInformado = '';
-  let novoProspect = null;
-  let prospectRef = null;
-
-  if(isNovo){
-    const nome = document.getElementById('f_novo_nome').value.trim();
-    if(!nome){ toast('Digite o nome do cliente novo'); state.savingContato=false; render(); return; }
-    const segmento = document.getElementById('f_novo_segmento').value;
-    const bairro = document.getElementById('f_novo_bairro').value.trim();
-    const telefone = document.getElementById('f_novo_telefone').value.trim();
-    const comprador = document.getElementById('f_novo_comprador').value.trim();
-    const newId = 'p_' + Date.now();
-    novoProspect = {id:newId, empresa:nome, segmento, bairro, telefone, comprador, statusOriginal:'', statusAtual:'Em contato', tipoBase:'novo', endereco:''};
-    empresaNome = nome;
-    prospectId = newId;
-    compradorInformado = comprador;
-  } else {
-    prospectId = state.formProspectId;
-    if(!prospectId){ toast('Selecione um cliente'); state.savingContato=false; render(); return; }
-    const p = state.prospects.find(x=>x.id===prospectId);
-    if(!p){ toast('Cliente inválido'); state.savingContato=false; render(); return; }
-    empresaNome = p.empresa;
-    const compradorField = document.getElementById('f_comprador');
-    compradorInformado = compradorField ? compradorField.value.trim() : (p.comprador||'');
-    prospectRef = p;
-  }
+  const compradorField = document.getElementById('f_comprador');
+  const compradorInformado = compradorField ? compradorField.value.trim() : (prospectRef.comprador||'');
 
   const entry = {
     id: 'l_' + Date.now(),
     prospectId: prospectId,
-    empresaNome,
+    empresaNome: prospectRef.empresa,
     comprador: compradorInformado,
     data: document.getElementById('f_data').value || todayISO(),
     tipoCliente: document.getElementById('f_tipo').value,
@@ -663,15 +695,12 @@ async function salvarContato(){
     criadoEm: new Date().toISOString(),
   };
 
+  state.savingContato = true;
+  render();
   try{
-    if(isNovo){
-      await apiPost({action:'addProspect', prospect: novoProspect});
-      state.prospects.push(novoProspect);
-    } else {
-      prospectRef.comprador = compradorInformado;
-      prospectRef.statusAtual = entry.resultado;
-      await apiPost({action:'updateProspect', prospect: prospectRef});
-    }
+    prospectRef.comprador = compradorInformado;
+    prospectRef.statusAtual = entry.resultado;
+    await apiPost({action:'updateProspect', prospect: prospectRef});
     await apiPost({action:'addLog', entry});
     state.logs.push(entry);
     state.storageOK = true;
@@ -681,9 +710,8 @@ async function salvarContato(){
   }catch(e){
     state.storageOK = false;
     state.syncError = e.message;
-    toast(e.message || 'Não consegui salvar na planilha. Confira a conexão e tente de novo.');
+    toast(e.message || 'Não consegui salvar. Tente de novo.');
   }
-
   state.savingContato = false;
   render();
 }
